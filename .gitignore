@@ -1,0 +1,5 @@
+uploads/
+
+# Secrets
+.env
+start_real_llm.py

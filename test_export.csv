@@ -1,0 +1,2 @@
+id,created_at,contract_id,tenant_id,contract_type,language,status,duration_ms,llm_model,llm_input_tokens,llm_output_tokens,num_risk_flags,error_message,risk_flags
+7,2025-12-09 12:41:18,95eaec46-da04-4694-b085-3d3967ecbe58,demo-tenant-1,employment,de,success,0,gpt-4o-mini,None,None,1,None,None
