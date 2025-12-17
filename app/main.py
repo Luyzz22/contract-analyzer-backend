@@ -14,6 +14,9 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional, List
 from uuid import uuid4
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from app.frontend import get_upload_page, get_landing_page, get_history_page, get_analytics_page, get_help_page
 
 from fastapi import FastAPI, UploadFile, File, HTTPException, Body, Header, Depends
 from fastapi.middleware.cors import CORSMiddleware
@@ -83,7 +86,15 @@ app = FastAPI(
     docs_url="/docs",
     openapi_url="/openapi.json",
 )
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
+@app.get("/", response_class=HTMLResponse)
+async def landing():
+    return get_landing_page()
+
+@app.get("/upload", response_class=HTMLResponse)
+async def upload():
+    return get_upload_page()
 
 # ============================================================================
 # ROOT ROUTE
@@ -1117,3 +1128,44 @@ function hideError() {{
 """
 
 
+
+# === ADDITIONAL ROUTES ===
+@app.get("/history", response_class=HTMLResponse)
+async def history():
+    return get_history_page()
+
+@app.get("/analytics", response_class=HTMLResponse)
+async def analytics():
+    return get_analytics_page()
+
+@app.get("/help", response_class=HTMLResponse)
+async def help_page():
+    return get_help_page()
+
+@app.get("/compare", response_class=HTMLResponse)
+async def compare():
+    return "<html><body><h1>Vertragsvergleich - Coming Soon</h1></body></html>"
+
+@app.get("/library", response_class=HTMLResponse)
+async def library():
+    return "<html><body><h1>Klausel-Bibliothek - Coming Soon</h1></body></html>"
+
+@app.get("/exports", response_class=HTMLResponse)
+async def exports():
+    return "<html><body><h1>Export-Historie - Coming Soon</h1></body></html>"
+
+@app.get("/settings", response_class=HTMLResponse)
+async def settings():
+    return "<html><body><h1>Einstellungen - Coming Soon</h1></body></html>"
+
+@app.get("/billing", response_class=HTMLResponse)
+async def billing():
+    return "<html><body><h1>Abrechnung - Coming Soon</h1></body></html>"
+
+@app.get("/team", response_class=HTMLResponse)
+async def team():
+    return "<html><body><h1>Team - Coming Soon</h1></body></html>"
+
+@app.get("/audit", response_class=HTMLResponse)
+async def audit():
+    return "<html><body><h1>Audit-Log - Coming Soon</h1></body></html>"
