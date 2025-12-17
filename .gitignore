@@ -1,5 +1,15 @@
-uploads/
+__pycache__/
+*.py[cod]
 
-# Secrets
+*.backup
+*.backup_*
+*.broken*
+*.before_*
+
+logs/
+*.log
+data/
+*.db
+
 .env
-start_real_llm.py
+uploads/
