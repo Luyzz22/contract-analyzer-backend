@@ -27,6 +27,14 @@ from .prompts import get_employment_contract_prompt, get_saas_contract_prompt
 from .logging_service import setup_logging, log_analysis_event
 from dashboard import get_dashboard
 
+# SSO Auth für Cross-Domain Login
+import sys
+sys.path.insert(0, '/var/www/contract-app')
+from shared_auth import verify_sso_token, get_current_user, COOKIE_NAME
+import sys
+sys.path.insert(0, '/var/www/contract-app')
+from multi_product_subscriptions import has_product_access, increment_usage, get_user_products
+
 # Enterprise-Standards
 try:
     from enterprise_saas_config import ENTERPRISE_SAAS_STANDARDS, VENDOR_COMPLIANCE_MATRIX
@@ -40,6 +48,33 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 setup_logging()
+# ============================================================================
+# SSO AUTH DEPENDENCY
+# ============================================================================
+
+from fastapi import Request, Cookie
+
+def get_optional_user(request: Request):
+    """Holt User aus SSO Cookie (optional)"""
+    token = request.cookies.get(COOKIE_NAME)
+    if token:
+        user = verify_sso_token(token)
+        if user:
+            return user
+    return None
+
+def require_auth(request: Request):
+    """Erzwingt SSO Auth - Redirect zu Login wenn nicht eingeloggt"""
+    user = get_optional_user(request)
+    if not user:
+        from fastapi.responses import RedirectResponse
+        return RedirectResponse(
+            url=f"https://app.sbsdeutschland.com/login?next={request.url}",
+            status_code=303
+        )
+    return user
+
+
 
 app = FastAPI(
     title="Contract Analyzer API",
@@ -49,6 +84,100 @@ app = FastAPI(
     openapi_url="/openapi.json",
 )
 
+
+# ============================================================================
+# ROOT ROUTE
+# ============================================================================
+
+@app.get("/", response_class=HTMLResponse)
+async def root():
+    """Startseite mit Weiterleitung zu Dashboard oder Docs"""
+    return """
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SBS Vertragsanalyse API</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+        }
+        .container {
+            text-align: center;
+            padding: 48px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 24px;
+            max-width: 500px;
+        }
+        h1 { font-size: 2rem; margin-bottom: 8px; }
+        .version { color: rgba(255,255,255,0.5); margin-bottom: 24px; }
+        .status { 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 999px;
+            color: #10b981;
+            font-size: 0.85rem;
+            margin-bottom: 32px;
+        }
+        .status::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .links { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+        a {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            text-decoration: none;
+            border-radius: 999px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        a:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
+        }
+        a.secondary {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📋 SBS Vertragsanalyse</h1>
+        <p class="version">API v0.3.0</p>
+        <div class="status">System Online</div>
+        <div class="links">
+            <a href="/upload">Vertrag hochladen</a>
+            <a href="/docs" class="secondary">API Docs</a>
+        </div>
+    </div>
+</body>
+</html>
+    """
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173", "http://localhost:3000", "*"],
@@ -56,6 +185,39 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+def check_contract_usage(user_id: int) -> dict:
+    """Prüft ob User Verträge analysieren darf"""
+    access = has_product_access(user_id, "contract")
+    
+    if access.get("is_admin"):
+        return {"allowed": True, "is_admin": True, "plan": "enterprise"}
+    
+    limit = access.get("usage_limit", 3)
+    used = access.get("usage_current", 0)
+    
+    # -1 = unlimited
+    if limit == -1:
+        return {"allowed": True, "plan": access.get("plan"), "used": used, "limit": "∞"}
+    
+    if used >= limit:
+        return {
+            "allowed": False, 
+            "reason": "limit_reached",
+            "plan": access.get("plan"),
+            "used": used,
+            "limit": limit
+        }
+    
+    return {
+        "allowed": True,
+        "plan": access.get("plan"),
+        "used": used,
+        "limit": limit,
+        "remaining": limit - used
+    }
+
 
 UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
@@ -436,3 +598,522 @@ async def shutdown_event():
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("app.main:app", host="127.0.0.1", port=8000, reload=True, log_level="info")
+
+
+# ============================================================================
+# UPLOAD FRONTEND
+# ============================================================================
+
+
+
+@app.post("/web/analyze/{contract_id}")
+async def web_analyze_contract(
+    contract_id: str,
+    request: Request,
+    contract_type: str = Body("employment", embed=True),
+    language: str = Body("de", embed=True),
+):
+    """Web-basierte Vertragsanalyse mit SSO und Usage Tracking"""
+    
+    # SSO Check
+    user = get_optional_user(request)
+    user_id = None
+    
+    if user:
+        user_id = user.get("user_id")
+        
+        # Usage Check
+        usage = check_contract_usage(user_id)
+        if not usage.get("allowed"):
+            raise HTTPException(
+                status_code=429, 
+                detail=f"Monatliches Limit erreicht ({usage.get('used')}/{usage.get('limit')}). Bitte upgraden Sie Ihren Plan."
+            )
+    
+    # Datei finden
+    files = list(UPLOAD_DIR.glob(f"{contract_id}_*"))
+    if not files:
+        raise HTTPException(status_code=404, detail="Contract not found")
+    
+    file_path = files[0]
+    
+    if file_path.suffix.lower() not in [".pdf", ".docx", ".doc"]:
+        raise HTTPException(status_code=400, detail="Only PDF/DOCX supported")
+    
+    if contract_type not in ["employment", "saas"]:
+        raise HTTPException(status_code=400, detail="contract_type must be 'employment' or 'saas'")
+    
+    try:
+        if file_path.suffix.lower() == ".pdf":
+            contract_text = extract_text_from_pdf(file_path)
+        else:
+            raise HTTPException(status_code=501, detail="DOCX support coming soon")
+        
+        if not contract_text or len(contract_text.strip()) < 20:
+            raise HTTPException(status_code=400, detail="Contract text too short or empty")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Text extraction failed: {e}")
+    
+    start_time_ms = int(time.time() * 1000)
+    
+    try:
+        if contract_type == "employment":
+            user_prompt = get_employment_contract_prompt(contract_text)
+            raw_result = call_employment_contract_model(user_prompt)
+        else:
+            user_prompt = get_saas_contract_prompt(contract_text)
+            raw_result = call_saas_contract_model(user_prompt)
+        
+        raw_result["contract_id"] = contract_id
+        raw_result["contract_type"] = contract_type
+        
+        duration_ms = int(time.time() * 1000) - start_time_ms
+        
+        # Usage incrementieren wenn User eingeloggt
+        if user_id:
+            increment_usage(user_id, "contract")
+            logger.info(f"✅ Usage incremented for user {user_id}")
+        
+        logger.info(f"Web analysis completed: {contract_id}, duration: {duration_ms}ms")
+        
+        return raw_result
+        
+    except Exception as e:
+        logger.error(f"Analysis failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/upload", response_class=HTMLResponse)
+async def upload_page(request: Request):
+    """Upload-Frontend für Vertragsanalyse (mit optionalem SSO-User)"""
+    user = get_optional_user(request)
+    
+    # User-Info für Template
+    user_name = user.get("name", "Account") if user else None
+    user_email = user.get("email", "") if user else None
+    is_logged_in = user is not None
+    
+    return f"""
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vertrag analysieren | SBS Deutschland</title>
+    <link rel="icon" href="https://sbsdeutschland.com/static/favicon.ico">
+    <link rel="stylesheet" href="https://sbsdeutschland.com/static/css/design-tokens.css">
+    <link rel="stylesheet" href="https://sbsdeutschland.com/static/css/components.css">
+    <link rel="stylesheet" href="https://sbsdeutschland.com/static/css/main.css">
+    <link rel="stylesheet" href="https://sbsdeutschland.com/static/css/flyout-menu.css">
+    <style>
+        .upload-hero {{
+            background: linear-gradient(135deg, #003856 0%, #00507a 100%);
+            padding: 120px 24px 60px;
+            text-align: center;
+            position: relative;
+        }}
+        .upload-hero::before {{
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(rgba(255,255,255,0.08) 1px, transparent 1px);
+            background-size: 30px 30px;
+            pointer-events: none;
+        }}
+        .upload-hero h1 {{
+            font-size: 2.2rem;
+            color: #fff;
+            margin-bottom: 12px;
+        }}
+        .upload-hero p {{
+            color: rgba(255,255,255,0.8);
+            max-width: 500px;
+            margin: 0 auto;
+        }}
+        .upload-container {{
+            max-width: 700px;
+            margin: -40px auto 60px;
+            padding: 0 24px;
+            position: relative;
+            z-index: 10;
+        }}
+        .upload-card {{
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            padding: 40px;
+        }}
+        .upload-zone {{
+            border: 2px dashed #cbd5e1;
+            border-radius: 16px;
+            padding: 48px 32px;
+            text-align: center;
+            background: #f8fafc;
+            transition: all 0.3s;
+            cursor: pointer;
+        }}
+        .upload-zone:hover, .upload-zone.dragover {{
+            border-color: #22d3ee;
+            background: rgba(34, 211, 238, 0.05);
+        }}
+        .upload-zone.has-file {{
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.05);
+        }}
+        .upload-icon {{ font-size: 3rem; margin-bottom: 16px; }}
+        .upload-text {{ font-size: 1.1rem; color: #003856; margin-bottom: 8px; font-weight: 600; }}
+        .upload-hint {{ font-size: 0.9rem; color: #64748b; }}
+        .file-input {{ display: none; }}
+        .file-name {{
+            margin-top: 16px;
+            padding: 12px 20px;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 8px;
+            color: #059669;
+            font-weight: 500;
+            display: none;
+        }}
+        .file-name.show {{ display: inline-block; }}
+        .contract-type {{
+            margin-top: 24px;
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }}
+        .type-btn {{
+            padding: 12px 24px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            background: #fff;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }}
+        .type-btn:hover {{ border-color: #003856; color: #003856; }}
+        .type-btn.active {{
+            border-color: #003856;
+            background: #003856;
+            color: #fff;
+        }}
+        .analyze-btn {{
+            margin-top: 32px;
+            width: 100%;
+            padding: 16px 32px;
+            background: linear-gradient(135deg, #003856, #00507a);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }}
+        .analyze-btn:hover {{
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 56, 86, 0.3);
+        }}
+        .analyze-btn:disabled {{
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }}
+        .result-section {{
+            margin-top: 32px;
+            padding: 24px;
+            background: #f8fafc;
+            border-radius: 12px;
+            display: none;
+        }}
+        .result-section.show {{ display: block; }}
+        .result-section h3 {{
+            color: #003856;
+            margin-bottom: 16px;
+            font-size: 1.2rem;
+        }}
+        .result-item {{
+            padding: 12px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }}
+        .result-item:last-child {{ border-bottom: none; }}
+        .result-label {{
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-bottom: 4px;
+        }}
+        .result-value {{
+            color: #003856;
+            font-weight: 500;
+        }}
+        .error-message {{
+            margin-top: 16px;
+            padding: 16px;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
+            color: #dc2626;
+            display: none;
+        }}
+        .error-message.show {{ display: block; }}
+        .trust-bar {{
+            background: #f8fafc;
+            padding: 24px;
+            text-align: center;
+        }}
+        .trust-items {{
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            flex-wrap: wrap;
+        }}
+        .trust-item {{
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #64748b;
+            font-size: 0.9rem;
+        }}
+        .trust-item strong {{ color: #003856; }}
+    </style>
+</head>
+<body>
+<header class="header">
+    <div class="header-inner">
+        <a href="https://sbsdeutschland.com/sbshomepage/" class="logo-wrap">
+            <img src="https://sbsdeutschland.com/static/sbs-logo-new.png" alt="SBS Deutschland" class="logo-img">
+            <div class="logo-text">
+                <strong>SBS Deutschland</strong>
+                <span>Smart Business Service · Weinheim</span>
+            </div>
+        </a>
+        <nav class="nav" id="nav">
+            <div class="dropdown">
+                <span class="dropdown-toggle">Lösungen</span>
+                <div class="dropdown-menu">
+                    <a href="https://sbsdeutschland.com/static/landing/">🧾 KI-Rechnungsverarbeitung</a>
+                    <a href="https://sbsdeutschland.com/loesungen/vertragsanalyse/">📋 KI-Vertragsanalyse</a>
+                </div>
+            </div>
+            <div class="dropdown">
+                <span class="dropdown-toggle">Preise</span>
+                <div class="dropdown-menu">
+                    <a href="https://sbsdeutschland.com/static/preise/">🧾 Rechnungsverarbeitung</a>
+                    <a href="https://sbsdeutschland.com/loesungen/vertragsanalyse/preise.html">📋 Vertragsanalyse</a>
+                </div>
+            </div>
+            <div class="auth-section">
+                {"<div class='auth-user'><a href='https://app.sbsdeutschland.com/dashboard' style='color:#003856;font-weight:600;text-decoration:none;'>👤 " + user_name + "</a></div>" if is_logged_in else "<a href='https://app.sbsdeutschland.com/login' class='nav-link-login'>Login</a>"}
+            </div>
+        </nav>
+    </div>
+</header>
+
+<section class="upload-hero">
+    <h1>📋 Vertrag analysieren</h1>
+    <p>Laden Sie Ihren Vertrag hoch und erhalten Sie eine KI-gestützte Analyse in Sekunden.</p>
+</section>
+
+<div class="upload-container">
+    <div class="upload-card">
+        <div class="upload-zone" id="uploadZone">
+            <div class="upload-icon">📄</div>
+            <div class="upload-text">PDF-Datei hierher ziehen</div>
+            <div class="upload-hint">oder klicken zum Auswählen (max. 10 MB)</div>
+            <input type="file" class="file-input" id="fileInput" accept=".pdf,.docx,.doc">
+        </div>
+        <div class="file-name" id="fileName"></div>
+        
+        <div class="contract-type">
+            <button class="type-btn active" data-type="employment">👔 Arbeitsvertrag</button>
+            <button class="type-btn" data-type="saas">☁️ SaaS-Vertrag</button>
+        </div>
+        
+        <button class="analyze-btn" id="analyzeBtn" disabled>Vertrag analysieren</button>
+        
+        <div class="error-message" id="errorMessage"></div>
+        
+        <div class="result-section" id="resultSection">
+            <h3>✅ Analyse-Ergebnis</h3>
+            <div id="resultContent"></div>
+        </div>
+    </div>
+</div>
+
+<div class="trust-bar">
+    <div class="trust-items">
+        <div class="trust-item">🇩🇪 Made in Germany</div>
+        <div class="trust-item"><strong>DSGVO</strong> konform</div>
+        <div class="trust-item"><strong>GPT-4o</strong> powered</div>
+        <div class="trust-item">🔒 Sichere Verarbeitung</div>
+    </div>
+</div>
+
+<footer class="footer" style="background:#003856;color:#fff;padding:40px 24px;margin-top:0;">
+    <div style="max-width:1100px;margin:0 auto;text-align:center;">
+        <p style="margin-bottom:16px;">© 2025 SBS Deutschland · <a href="https://sbsdeutschland.com/sbshomepage/impressum.html" style="color:rgba(255,255,255,0.7);">Impressum</a> · <a href="https://sbsdeutschland.com/sbshomepage/datenschutz.html" style="color:rgba(255,255,255,0.7);">Datenschutz</a></p>
+        <p style="color:rgba(255,255,255,0.6);font-size:0.9rem;">Made with ❤️ in Weinheim</p>
+    </div>
+</footer>
+
+<script>
+const uploadZone = document.getElementById('uploadZone');
+const fileInput = document.getElementById('fileInput');
+const fileName = document.getElementById('fileName');
+const analyzeBtn = document.getElementById('analyzeBtn');
+const errorMessage = document.getElementById('errorMessage');
+const resultSection = document.getElementById('resultSection');
+const resultContent = document.getElementById('resultContent');
+const typeBtns = document.querySelectorAll('.type-btn');
+
+let selectedFile = null;
+let contractType = 'employment';
+let currentContractId = null;
+
+// Drag & Drop
+uploadZone.addEventListener('dragover', (e) => {{
+    e.preventDefault();
+    uploadZone.classList.add('dragover');
+}});
+
+uploadZone.addEventListener('dragleave', () => {{
+    uploadZone.classList.remove('dragover');
+}});
+
+uploadZone.addEventListener('drop', (e) => {{
+    e.preventDefault();
+    uploadZone.classList.remove('dragover');
+    const files = e.dataTransfer.files;
+    if (files.length > 0) handleFile(files[0]);
+}});
+
+uploadZone.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', (e) => {{
+    if (e.target.files.length > 0) handleFile(e.target.files[0]);
+}});
+
+function handleFile(file) {{
+    if (!file.name.match(/\.(pdf|docx|doc)$/i)) {{
+        showError('Bitte nur PDF oder DOCX-Dateien hochladen.');
+        return;
+    }}
+    if (file.size > 10 * 1024 * 1024) {{
+        showError('Datei zu groß (max. 10 MB).');
+        return;
+    }}
+    selectedFile = file;
+    fileName.textContent = '📄 ' + file.name;
+    fileName.classList.add('show');
+    uploadZone.classList.add('has-file');
+    analyzeBtn.disabled = false;
+    hideError();
+}}
+
+typeBtns.forEach(btn => {{
+    btn.addEventListener('click', () => {{
+        typeBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        contractType = btn.dataset.type;
+    }});
+}});
+
+analyzeBtn.addEventListener('click', async () => {{
+    if (!selectedFile) return;
+    
+    analyzeBtn.disabled = true;
+    analyzeBtn.textContent = 'Wird hochgeladen...';
+    hideError();
+    resultSection.classList.remove('show');
+    
+    try {{
+        // Upload
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+        
+        const uploadRes = await fetch('/contracts/upload', {{
+            method: 'POST',
+            body: formData,
+            headers: {{ 'X-API-Key': 'web-upload-key' }}
+        }});
+        
+        const uploadData = await uploadRes.json();
+        if (!uploadRes.ok) throw new Error(uploadData.detail || 'Upload fehlgeschlagen');
+        
+        currentContractId = uploadData.contract_id;
+        analyzeBtn.textContent = 'Wird analysiert...';
+        
+        // Analyze
+        const analyzeRes = await fetch('/web/analyze/' + currentContractId, {{
+            method: 'POST',
+            headers: {{'Content-Type': 'application/json'}},
+            body: JSON.stringify({{contract_type: contractType, language: 'de'}}),
+            credentials: 'include'
+        }});
+        
+        const analyzeData = await analyzeRes.json();
+        if (!analyzeRes.ok) throw new Error(analyzeData.detail || 'Analyse fehlgeschlagen');
+        
+        displayResult(analyzeData);
+        
+    }} catch (err) {{
+        showError(err.message);
+    }}
+    
+    analyzeBtn.disabled = false;
+    analyzeBtn.textContent = 'Vertrag analysieren';
+}});
+
+function displayResult(data) {{
+    let html = '';
+    
+    if (data.summary) {{
+        html += '<div class="result-item"><div class="result-label">Zusammenfassung</div><div class="result-value">' + data.summary + '</div></div>';
+    }}
+    
+    if (data.termination_notice) {{
+        html += '<div class="result-item"><div class="result-label">Kündigungsfrist</div><div class="result-value">' + data.termination_notice + '</div></div>';
+    }}
+    
+    if (data.contract_duration) {{
+        html += '<div class="result-item"><div class="result-label">Vertragslaufzeit</div><div class="result-value">' + data.contract_duration + '</div></div>';
+    }}
+    
+    if (data.salary) {{
+        html += '<div class="result-item"><div class="result-label">Vergütung</div><div class="result-value">' + data.salary + '</div></div>';
+    }}
+    
+    if (data.risks && data.risks.length > 0) {{
+        html += '<div class="result-item"><div class="result-label">⚠️ Risiken</div><div class="result-value">' + data.risks.join('<br>') + '</div></div>';
+    }}
+    
+    if (data.key_clauses && data.key_clauses.length > 0) {{
+        html += '<div class="result-item"><div class="result-label">📋 Wichtige Klauseln</div><div class="result-value">' + data.key_clauses.join('<br>') + '</div></div>';
+    }}
+    
+    // Fallback: Zeige alle Keys
+    if (!html) {{
+        for (const [key, value] of Object.entries(data)) {{
+            if (value && key !== 'contract_id' && key !== 'contract_type') {{
+                html += '<div class="result-item"><div class="result-label">' + key + '</div><div class="result-value">' + JSON.stringify(value) + '</div></div>';
+            }}
+        }}
+    }}
+    
+    resultContent.innerHTML = html;
+    resultSection.classList.add('show');
+}}
+
+function showError(msg) {{
+    errorMessage.textContent = '❌ ' + msg;
+    errorMessage.classList.add('show');
+}}
+
+function hideError() {{
+    errorMessage.classList.remove('show');
+}}
+</script>
+</body>
+</html>
+"""
+
+
