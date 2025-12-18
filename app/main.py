@@ -235,31 +235,31 @@ async def dashboard_page():
 # Placeholder Pages
 @app.get("/compare", response_class=HTMLResponse)
 async def compare_page():
-    return "<html><head><title>Vertragsvergleich</title></head><body><h1>Vertragsvergleich - Coming Soon</h1><a href='/upload'>← Zurück</a></body></html>"
+    return "<html><head><title>Vertragsvergleich</title></head><body><h1>Vertragsvergleich - Coming Soon</h1><a href='/upload'>Zurück</a></body></html>"
 
 @app.get("/library", response_class=HTMLResponse)
 async def library_page():
-    return "<html><head><title>Klausel-Bibliothek</title></head><body><h1>Klausel-Bibliothek - Coming Soon</h1><a href='/upload'>← Zurück</a></body></html>"
+    return "<html><head><title>Klausel-Bibliothek</title></head><body><h1>Klausel-Bibliothek - Coming Soon</h1><a href='/upload'>Zurück</a></body></html>"
 
 @app.get("/exports", response_class=HTMLResponse)
 async def exports_page():
-    return "<html><head><title>Export-Historie</title></head><body><h1>Export-Historie - Coming Soon</h1><a href='/upload'>← Zurück</a></body></html>"
+    return "<html><head><title>Export-Historie</title></head><body><h1>Export-Historie - Coming Soon</h1><a href='/upload'>Zurück</a></body></html>"
 
 @app.get("/settings", response_class=HTMLResponse)
 async def settings_page():
-    return "<html><head><title>Einstellungen</title></head><body><h1>Einstellungen - Coming Soon</h1><a href='/upload'>← Zurück</a></body></html>"
+    return "<html><head><title>Einstellungen</title></head><body><h1>Einstellungen - Coming Soon</h1><a href='/upload'>Zurück</a></body></html>"
 
 @app.get("/billing", response_class=HTMLResponse)
 async def billing_page():
-    return "<html><head><title>Abrechnung</title></head><body><h1>Abrechnung - Coming Soon</h1><a href='/upload'>← Zurück</a></body></html>"
+    return "<html><head><title>Abrechnung</title></head><body><h1>Abrechnung - Coming Soon</h1><a href='/upload'>Zurück</a></body></html>"
 
 @app.get("/team", response_class=HTMLResponse)
 async def team_page():
-    return "<html><head><title>Team</title></head><body><h1>Team - Coming Soon</h1><a href='/upload'>← Zurück</a></body></html>"
+    return "<html><head><title>Team</title></head><body><h1>Team - Coming Soon</h1><a href='/upload'>Zurück</a></body></html>"
 
 @app.get("/audit", response_class=HTMLResponse)
 async def audit_page():
-    return "<html><head><title>Audit-Log</title></head><body><h1>Audit-Log - Coming Soon</h1><a href='/upload'>← Zurück</a></body></html>"
+    return "<html><head><title>Audit-Log</title></head><body><h1>Audit-Log - Coming Soon</h1><a href='/upload'>Zurück</a></body></html>"
 
 # ============================================================================
 # API V3 ROUTES (Frontend Compatible)
@@ -409,8 +409,8 @@ async def api_analyze_contract(contract_id: str, request: Request):
             "contract_type": contract_type,
             "status": "analyzed",
             "processing_time_seconds": round(processing_time, 2),
-            "fields_extracted": len(raw_result.get("extracted_fields", {})),
-            "fields_total": 42,
+            "fields_extracted": len([v for v in raw_result.get("extracted_fields", {}).values() if v is not None]),
+            "fields_total": len(raw_result.get("extracted_fields", {})) or 14,
             "extracted_data": raw_result.get("extracted_fields", {}),
             "risk_assessment": {
                 "overall_risk_level": raw_result.get("overall_risk_level", "medium"),
@@ -515,7 +515,6 @@ async def api_export_json(contract_id: str):
 @app.get("/api/v3/contracts/{contract_id}/export/pdf")
 async def api_export_pdf(contract_id: str):
     """Export als PDF (Placeholder)"""
-    # TODO: PDF Generation implementieren
     raise HTTPException(status_code=501, detail="PDF export coming soon")
 
 @app.get("/api/v3/dashboard/summary")
@@ -539,7 +538,7 @@ async def api_dashboard_summary():
 
 @app.post("/api/v3/clause/explain")
 async def api_explain_clause(request: Request):
-    """Erklärt eine Vertragsklausel"""
+    """Erklärt eine Vertragsklausel mit echtem LLM"""
     try:
         body = await request.json()
         clause_text = body.get("clause_text", "")
@@ -550,19 +549,76 @@ async def api_explain_clause(request: Request):
     if not clause_text:
         raise HTTPException(status_code=400, detail="clause_text required")
     
-    # Einfache Analyse (TODO: LLM-basiert)
-    return {
-        "clause_text": clause_text,
-        "risk_level": "medium",
-        "explanation": f"Diese Klausel regelt wichtige vertragliche Aspekte. Bei einem {contract_type}-Vertrag sollten Sie besonders auf die rechtlichen Implikationen achten.",
-        "legal_assessment": "Die Klausel erscheint grundsätzlich rechtlich zulässig, sollte aber im Kontext des Gesamtvertrags geprüft werden.",
-        "related_laws": ["BGB §305", "BGB §307", "AGB-Recht"],
-        "recommendations": [
-            "Prüfen Sie die Klausel im Gesamtkontext des Vertrags",
-            "Bei Unsicherheit rechtliche Beratung einholen",
-            "Vergleichen Sie mit Marktstandards"
-        ]
-    }
+    # Echte LLM-Analyse
+    try:
+        from openai import OpenAI
+        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        
+        type_names = {
+            "employment": "Arbeitsvertrag",
+            "saas": "SaaS-Vertrag", 
+            "vendor": "Lieferantenvertrag",
+            "nda": "Geheimhaltungsvereinbarung",
+            "service": "Dienstleistungsvertrag",
+            "rental": "Mietvertrag",
+            "purchase": "Kaufvertrag",
+            "general": "Vertrag"
+        }
+        type_name = type_names.get(contract_type, "Vertrag")
+        
+        prompt = f"""Analysiere diese Vertragsklausel aus einem {type_name} nach deutschem Recht.
+
+KLAUSEL:
+"{clause_text}"
+
+Antworte NUR mit validem JSON ohne Markdown-Formatierung:
+{{"risk_level": "low oder medium oder high oder critical", "explanation": "Was bedeutet diese Klausel konkret fuer den Vertragspartner? (2-3 Saetze, verstaendlich)", "legal_assessment": "Rechtliche Einschaetzung nach deutschem Recht - ist die Klausel wirksam? Gibt es Risiken? (2-3 Saetze)", "related_laws": ["Liste der relevanten Paragraphen, z.B. BGB 307, ArbZG 3"], "recommendations": ["Konkrete Handlungsempfehlung 1", "Konkrete Handlungsempfehlung 2"]}}"""
+
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "Du bist ein erfahrener deutscher Rechtsanwalt. Antworte nur mit validem JSON, keine Markdown-Backticks."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.3,
+        )
+        
+        result_text = response.choices[0].message.content.strip()
+        
+        # JSON extrahieren falls mit Backticks
+        if "```" in result_text:
+            parts = result_text.split("```")
+            for part in parts:
+                if "{" in part and "}" in part:
+                    result_text = part.strip()
+                    if result_text.startswith("json"):
+                        result_text = result_text[4:].strip()
+                    break
+        
+        result = json.loads(result_text)
+        result["clause_text"] = clause_text
+        return result
+        
+    except json.JSONDecodeError as e:
+        logger.error(f"JSON parse error in clause explain: {e}")
+        return {
+            "clause_text": clause_text,
+            "risk_level": "medium",
+            "explanation": "Die automatische Analyse konnte das Ergebnis nicht verarbeiten.",
+            "legal_assessment": "Bitte lassen Sie diese Klausel von einem Rechtsanwalt pruefen.",
+            "related_laws": ["BGB"],
+            "recommendations": ["Rechtliche Beratung einholen"]
+        }
+    except Exception as e:
+        logger.error(f"Clause explain error: {e}")
+        return {
+            "clause_text": clause_text,
+            "risk_level": "medium",
+            "explanation": "Die automatische Analyse ist fehlgeschlagen.",
+            "legal_assessment": "Bitte lassen Sie diese Klausel von einem Rechtsanwalt pruefen.",
+            "related_laws": ["BGB"],
+            "recommendations": ["Rechtliche Beratung einholen"]
+        }
 
 # ============================================================================
 # HEALTH & MISC
@@ -602,27 +658,27 @@ async def http_exception_handler(request: Request, exc: HTTPException):
 
 @app.on_event("startup")
 async def startup():
-    logger.info("🚀 Contract Intelligence API v0.3.1 starting...")
-    logger.info(f"📁 Upload directory: {UPLOAD_DIR.absolute()}")
+    logger.info("Contract Intelligence API v0.3.1 starting...")
+    logger.info(f"Upload directory: {UPLOAD_DIR.absolute()}")
     
     # DB initialisieren
     _init_db()
     
     dummy_mode = os.getenv("CONTRACT_ANALYZER_DUMMY", "true").lower() == "true"
     if dummy_mode:
-        logger.warning("⚠️  DUMMY MODE ENABLED")
+        logger.warning("DUMMY MODE ENABLED")
     else:
         if os.getenv("OPENAI_API_KEY"):
-            logger.info("✅ OpenAI API key configured")
+            logger.info("OpenAI API key configured")
         else:
-            logger.error("❌ OPENAI_API_KEY not set")
+            logger.error("OPENAI_API_KEY not set")
     
-    logger.info(f"✅ {len(API_KEYS)} API keys configured")
-    logger.info("✅ Enterprise Frontend loaded")
+    logger.info(f"{len(API_KEYS)} API keys configured")
+    logger.info("Enterprise Frontend loaded")
 
 @app.on_event("shutdown")
 async def shutdown():
-    logger.info("👋 Contract Intelligence API shutting down...")
+    logger.info("Contract Intelligence API shutting down...")
 
 # ============================================================================
 # MAIN
