@@ -1,10 +1,10 @@
 # app/prompts.py
 """
 Prompt-Definitionen für die KI-Analyse von Verträgen.
-Fokus: deutsche Arbeitsverträge und B2B-SaaS-/Dienstleistungsverträge.
+8 Vertragstypen: Arbeitsvertrag, SaaS, NDA, Lieferant, Dienstleistung, Mietvertrag, Kaufvertrag, Allgemein
 
-Die Prompts sind optimiert für:
-- GPT-4 mini (schnell & kostengünstig)
+Optimiert für:
+- GPT-4o-mini (schnell & kostengünstig)
 - Strikte JSON-Output-Validierung
 - Deutsche Rechtsterminologie
 - CFO & Legal-Ops-Perspektive
@@ -17,340 +17,603 @@ Die Prompts sind optimiert für:
 
 EMPLOYMENT_CONTRACT_SYSTEM_PROMPT = """
 Du bist ein erfahrener Fachanwalt für Arbeitsrecht in Deutschland mit 20+ Jahren Erfahrung.
-Du arbeitest für eine Kanzlei-Software, die Arbeitsverträge für Anwälte und Steuerkanzleien voranalysiert.
-
-Deine Aufgabe ist es, aus Vertragsdokumenten strukturierte Daten und juristisch relevante Risiken zu extrahieren.
-Du ersetzt keine Rechtsberatung, sondern bereitest Informationen für professionelle Anwender auf.
+Du analysierst Arbeitsverträge für Anwälte, HR-Abteilungen und Steuerkanzleien.
 
 Kernprinzipien:
 - Sachlich, präzise, juristische Fachsprache
-- Fokus auf messbare Daten (Daten, Fristen, Beträge) und echte Risiken
+- Fokus auf messbare Daten und echte Risiken
 - Nichts erfinden, was nicht im Vertrag steht
-- Strikt JSON-Format, keine Erklärungstexte
-
-Du antwortest ausschließlich im JSON-Format gemäß dem vorgegebenen Schema.
+- Strikt JSON-Format
 """.strip()
 
 
 EMPLOYMENT_CONTRACT_USER_PROMPT_TEMPLATE = """
-Analysiere den folgenden deutschen Arbeitsvertrag für eine Kanzlei, die Arbeitsrecht für Unternehmen und Arbeitnehmer betreut.
+Analysiere den folgenden deutschen Arbeitsvertrag.
 
 ANALYSE-ZIELE:
-1. Erstelle eine kurze, präzise und sachliche Zusammenfassung des Vertragsinhalts
-   (Parteien, Tätigkeit, Befristung, Vergütung, Arbeitszeit, besondere Klauseln).
-   → Maximal 3–4 Sätze, geeignet für erfahrene Juristen, KEINE Wertungen.
+1. Kurze Zusammenfassung (3-4 Sätze): Parteien, Tätigkeit, Befristung, Vergütung, Arbeitszeit
+2. Strukturierte Datenextraktion
+3. Arbeitsrechtliche Risiken identifizieren
 
-2. Extrahiere die wichtigsten Strukturparameter:
-   - Partei-Namen und deren Rollen (Arbeitgeber/Arbeitnehmer)
-   - Start-, End-, Probezeitdauer
-   - Arbeitszeit, Vergütung, Urlaub
-   - Kündigungsfristen, Wettbewerbsverbote, Geheimhaltung
-
-3. Identifiziere arbeitsrechtlich relevante Risiken, Unklarheiten oder atypische Regelungen:
-   - Ungewöhnliche oder aggressive Klauseln
-   - Fehlende Standardregelungen
-   - Potenzielle Konflikte mit deutschem Arbeitsrecht
-   - Besonderheiten in Überstundenabgeltung, Konkurrenzschutz, Haftungsausschlüssen
-
-ERFORDERLICHE STRUKTUR – Gib deine Antwort ausschließlich als valides JSON zurück:
+ERFORDERLICHE JSON-STRUKTUR:
 
 {{
-  "contract_id": "<STRING: eindeutige ID oder leerer String>",
+  "contract_id": "",
   "contract_type": "employment",
   "language": "de",
-  "summary": "<STRING: 3-4 Sätze Zusammenfassung>",
+  "summary": "<3-4 Sätze Zusammenfassung>",
   "extracted_fields": {{
-    "parties": [
-      {{ "name": "<STRING|null: Name der Partei>", "role": "<employer|employee|null>" }}
-    ],
+    "parties": [{{"name": "<String|null>", "role": "<employer|employee>"}}],
     "start_date": "<YYYY-MM-DD|null>",
-    "fixed_term": <true|false: ist Befristung vorhanden?>,
-    "end_date": "<YYYY-MM-DD|null: nur wenn Befristung>",
-    "probation_period_months": <NUMBER|null: z.B. 6.0>,
-    "weekly_hours": <NUMBER|null: z.B. 40.0>,
-    "base_salary_eur": <NUMBER|null: z.B. 3200.0>,
-    "vacation_days_per_year": <NUMBER|null>,
-    "notice_period_employee": "<STRING|null: z.B. '4 Wochen zum Schluss eines Kalendermonats' oder '2 Wochen in Probezeit'>",
-    "notice_period_employer": "<STRING|null>",
-    "non_compete_during_term": <true|false: Wettbewerbsverbot WÄHREND der Beschäftigung>,
-    "post_contract_non_compete": <true|false: Wettbewerbsverbot NACH Beendigung>
+    "fixed_term": <true|false>,
+    "end_date": "<YYYY-MM-DD|null>",
+    "probation_period_months": <Number|null>,
+    "weekly_hours": <Number|null>,
+    "base_salary_eur": <Number|null>,
+    "vacation_days_per_year": <Number|null>,
+    "notice_period_employee": "<String|null>",
+    "notice_period_employer": "<String|null>",
+    "non_compete_during_term": <true|false>,
+    "post_contract_non_compete": <true|false>,
+    "overtime_regulation": "<String|null>",
+    "bonus_provisions": "<String|null>"
   }},
   "risk_flags": [
     {{
-      "severity": "<low|medium|high>",
-      "title": "<STRING: prägnante, deutsche Risiko-Bezeichnung>",
-      "description": "<STRING: kurze Erklärung des Risikos und warum es relevant ist>",
-      "clause_snippet": "<STRING|null: ggf. direkter Zitat aus Vertrag>",
-      "policy_reference": "<STRING|null: z.B. 'BGB §623', 'Arbeitszeit-Policy', 'Datenschutz-Policy'>"
+      "severity": "<low|medium|high|critical>",
+      "title": "<Risiko-Bezeichnung>",
+      "description": "<Erklärung>",
+      "clause_snippet": "<Zitat|null>",
+      "policy_reference": "<BGB §|null>"
     }}
-  ]
+  ],
+  "overall_risk_level": "<low|medium|high|critical>",
+  "overall_risk_score": <0-100>
 }}
 
-BEFÜLLUNGS-HINWEISE:
-✓ "summary": Maximal 3–4 Sätze, klar, sachlich, ohne Wertungen, geeignet für erfahrene Juristen.
-✓ "parties": Versuche die Namen der Parteien zu erkennen und als "employer" bzw. "employee" zu kennzeichnen.
-✓ Datumsangaben im ISO-Format YYYY-MM-DD, wenn eindeutig bestimmbar, sonst null.
-✓ Geldbeträge als numerische Werte in EUR ohne Tausendertrennzeichen (z.B. 3200.0, nicht "3.200,00").
-✓ Wenn eine Information im Vertrag nicht eindeutig bestimmbar ist, setze den Wert auf null.
-✓ "risk_flags": Erfasse nur juristisch sinnvolle Risiken (z.B. ungewöhnliche Überstundenregelung, sehr kurze Kündigungsfristen, problematische Wettbewerbsverbote).
-✓ "severity": low = informativ, medium = sollte geprüft werden, high = kritisch für Kanzlei/Client
-
-KRITISCHE ANFORDERUNGEN:
-⚠ Gib ausschließlich JSON zurück, KEINEN erklärenden Freitext vorher oder nachher.
-⚠ Die JSON-Struktur muss exakt dem oben angegebenen Schema entsprechen.
-⚠ Verwende deutsche Sprache in "summary", "title" und "description".
-⚠ Erfinde keine Tatsachen, die nicht im Vertrag stehen – im Zweifelsfall null setzen.
-⚠ Wenn das JSON ungültig ist, wird die Analyse fehlschlagen – prüfe deine Syntax.
-
-VERTRAGSTEXT ZUR ANALYSE:
+VERTRAGSTEXT:
 \"\"\"{contract_text}\"\"\"
 """.strip()
 
 
 # ============================================================================
-# SAAS- / DIENSTLEISTUNGSVERTRÄGE – SYSTEM & USER PROMPTS
+# SAAS-VERTRÄGE
 # ============================================================================
 
 SAAS_CONTRACT_SYSTEM_PROMPT = """
-Du bist ein erfahrener Unternehmensjurist und CFO-orientierter SaaS-Vertragsanalyst mit 15+ Jahren Erfahrung.
-Du analysierst B2B-SaaS- und Cloud-Dienstleistungsverträge für Finanzverantwortliche, Legal Ops und Kanzleien.
+Du bist ein erfahrener Unternehmensjurist und CFO-orientierter SaaS-Vertragsanalyst.
+Du analysierst B2B-SaaS- und Cloud-Verträge für Finanzverantwortliche und Legal Ops.
 
-Dein spezieller Fokus liegt auf:
-- Wirtschaftlichen Kerndaten (ACV, Laufzeit, Auto-Renewal, Kündigungsfristen)
-- Wesentlichen Risiken (Haftungsbegrenzung, SLA/Uptime, Datenschutz/Datenlokation, Vendor-Lock-in)
-- Nachverhandlungs-Chancen und Best Practices
-
-Du ersetzt keine Rechtsberatung, sondern bereitest Informationen für professionelle Anwender auf.
-
-Kernprinzipien:
-- Finanz- & Operational-Perspektive (nicht nur juristisch)
-- Fokus auf Kennzahlen (ACV, SLA%, Auto-Renew, Kündigungsfristen)
-- Verständlich für CFO, Procurement & General Counsel
-- Strikt JSON-Format, keine Erklärungstexte
-
-Du antwortest ausschließlich im JSON-Format gemäß dem vorgegebenen Schema.
+Fokus:
+- Wirtschaftliche Kerndaten (ACV, Laufzeit, Auto-Renewal)
+- Risiken (Haftung, SLA, Datenschutz, Vendor-Lock-in)
+- Strikt JSON-Format
 """.strip()
 
 
 SAAS_CONTRACT_USER_PROMPT_TEMPLATE = """
-Analysiere den folgenden B2B-SaaS- bzw. Cloud-Dienstleistungsvertrag aus Sicht von CFO, Legal Ops und Beschaffung.
+Analysiere den folgenden B2B-SaaS-Vertrag aus CFO-Perspektive.
 
-ANALYSE-ZIELE:
-1. Erstelle eine kurze, prägnante Zusammenfassung der wirtschaftlichen Kerndaten:
-   → Parteien, Produkt/Service, Laufzeit, Mindestlaufzeit, Auto-Renewal, ACV, Billing-Rhythmus
-   → 2–3 Sätze, sachlich, für CFO verständlich
-
-2. Befülle die Strukturfelder für einen SaaS-Vertrag so weit wie möglich:
-   → Finanzielle Kennzahlen (ACV, Billing, Mindestlaufzeit)
-   → Governance (Auto-Renewal, Kündigungsfristen, Kündigungsrecht)
-   → Technische/Operative Aspekte (SLA, Datenlokation, DP-Addendum)
-
-3. Identifiziere CFO-/Enterprise-relevante Risiken mit Fokus auf:
-   - Auto-Renewal, Verlängerungslogik, Kündigungsfristen, Mindestlaufzeit
-   - Haftungsbegrenzung (Cap, Ausnahmen), Verfügbarkeitszusagen (SLA/Uptime) und Gutschrift-Mechaniken
-   - Datenschutz (Datenlokation, Auftragsverarbeitung, Subprozessoren)
-   - Vendor-Lock-in (Kündigungsrechte, Exit/Data-Export, Migrationsunterstützung)
-
-ERFORDERLICHE STRUKTUR – Gib deine Antwort ausschließlich als valides JSON zurück:
+ERFORDERLICHE JSON-STRUKTUR:
 
 {{
-  "contract_id": "<STRING: eindeutige ID oder leerer String>",
+  "contract_id": "",
   "contract_type": "saas",
   "language": "de",
-  "summary": "<STRING: 2-3 Sätze Zusammenfassung mit Kerndaten>",
+  "summary": "<2-3 Sätze mit Kerndaten>",
   "extracted_fields": {{
-    "customer_name": "<STRING|null: Name des Kunden>",
-    "vendor_name": "<STRING|null: Name des Anbieters>",
+    "customer_name": "<String|null>",
+    "vendor_name": "<String|null>",
+    "product_name": "<String|null>",
     "contract_start_date": "<YYYY-MM-DD|null>",
     "contract_end_date": "<YYYY-MM-DD|null>",
-    "auto_renew": <true|false|null: verlängert sich automatisch?>,
-    "renewal_notice_days": "<NUMBER|null: Tage vor Ablauf, in denen gekündigt werden muss>",
-    "annual_contract_value_eur": "<NUMBER|null: jährlicher Vertragswert geschätzt>",
+    "auto_renew": <true|false|null>,
+    "renewal_notice_days": <Number|null>,
+    "annual_contract_value_eur": <Number|null>,
     "billing_interval": "<monthly|quarterly|annual|null>",
-    "min_term_months": "<NUMBER|null: Mindestlaufzeit>",
-    "termination_for_convenience": "<true|false|null: kann ohne Grund gekündigt werden?>",
-    "data_location": "<STRING|null: z.B. 'EU', 'Germany', 'US'>",
-    "dp_addendum_included": "<true|false|null: ist Datenschutz-Addendum enthalten?>",
-    "liability_cap_multiple_acv": "<NUMBER|null: Haftungsobergrenze als Vielfaches des ACV>",
-    "uptime_sla_percent": "<NUMBER|null: z.B. 99.5>"
+    "min_term_months": <Number|null>,
+    "termination_for_convenience": <true|false|null>,
+    "data_location": "<String|null>",
+    "dp_addendum_included": <true|false|null>,
+    "liability_cap_multiple_acv": <Number|null>,
+    "uptime_sla_percent": <Number|null>,
+    "support_level": "<String|null>",
+    "data_export_clause": <true|false|null>
   }},
   "risk_flags": [
     {{
-      "severity": "<low|medium|high>",
-      "title": "<STRING: prägnante, deutsche Risiko-Bezeichnung>",
-      "description": "<STRING: kurze Erklärung des finanziellen oder operativen Risikos>",
-      "clause_snippet": "<STRING|null: ggf. direkter Zitat aus Vertrag>",
-      "policy_reference": "<STRING|null: z.B. 'Data Processing Agreement', 'SLA Schedule'>"
+      "severity": "<low|medium|high|critical>",
+      "title": "<Risiko-Bezeichnung>",
+      "description": "<Erklärung>",
+      "clause_snippet": "<Zitat|null>",
+      "policy_reference": "<String|null>"
     }}
-  ]
+  ],
+  "overall_risk_level": "<low|medium|high|critical>",
+  "overall_risk_score": <0-100>
 }}
 
-BEFÜLLUNGS-HINWEISE:
-✓ Nutze nur Informationen aus dem Vertrag; setze unbekannte Werte auf null.
-✓ "annual_contract_value_eur": jährlicher Vertragswert in EUR, anhand der Vertragslogik geschätzt.
-  → Falls z.B. 12.000 EUR für 12 Monate → ACV = 12.000
-  → Falls Staffelung nach Volumen → beste Schätzung
-✓ "auto_renew": true, wenn sich der Vertrag automatisch verlängert, sofern nicht fristgerecht gekündigt.
-✓ "renewal_notice_days": Frist (in Tagen) vor Ablauf/Verlängerung, zu der gekündigt werden muss.
-  → Typisch: 30, 60, 90 Tage
-✓ "termination_for_convenience": true, wenn Kunde jederzeit (ggf. nach Mindestlaufzeit) kündigen kann.
-✓ "liability_cap_multiple_acv": Haftungsobergrenze in Vielfachen des ACV (z.B. 1.0 für 1x ACV, 12.0 für 12x ACV).
-✓ "risk_flags": Fokussiere auf Punkte mit finanzieller oder operativer Relevanz für CFO / Management.
-  → z.B. Auto-Renewal ohne ausreichende Kündigungsfrist = high risk
-
-KRITISCHE ANFORDERUNGEN:
-⚠ Gib ausschließlich JSON zurück, KEINEN erklärenden Freitext vorher oder nachher.
-⚠ Die JSON-Struktur muss exakt dem oben angegebenen Schema entsprechen.
-⚠ Verwende deutsche Sprache in "summary", "title" und "description".
-⚠ Erfinde keine Tatsachen, die nicht im Vertrag stehen – im Zweifelsfall null setzen.
-⚠ Wenn das JSON ungültig ist, wird die Analyse fehlschlagen – prüfe deine Syntax.
-
-VERTRAGSTEXT ZUR ANALYSE:
+VERTRAGSTEXT:
 \"\"\"{contract_text}\"\"\"
 """.strip()
 
+
 # ============================================================================
-# HILFS-FUNKTIONEN FÜR PROMPT-TEMPLATE-FILLING
+# NDA / GEHEIMHALTUNGSVEREINBARUNG
 # ============================================================================
 
-def get_employment_contract_prompt(contract_text: str) -> str:
-    """
-    Füllt das Employment-Contract-Userprompt-Template mit echtem Vertragstext.
-    
-    Args:
-        contract_text: Extrahierter Text aus PDF/DOCX
-    
-    Returns:
-        Fertig ausgefülltes Prompt-Template
-    """
-    # Text kürzen auf ~8000 Tokens (ca. 6000-7000 Zeichen)
-    max_chars = 7000
+NDA_CONTRACT_SYSTEM_PROMPT = """
+Du bist ein erfahrener Unternehmensjurist spezialisiert auf Geheimhaltungsvereinbarungen (NDAs).
+Du analysierst NDAs für M&A, Partnerschaften und Geschäftsbeziehungen.
+
+Fokus:
+- Schutzumfang und Definition vertraulicher Informationen
+- Laufzeit und Nachwirkung
+- Sanktionen und Haftung
+- Strikt JSON-Format
+""".strip()
+
+
+NDA_CONTRACT_USER_PROMPT_TEMPLATE = """
+Analysiere die folgende Geheimhaltungsvereinbarung (NDA).
+
+ERFORDERLICHE JSON-STRUKTUR:
+
+{{
+  "contract_id": "",
+  "contract_type": "nda",
+  "language": "de",
+  "summary": "<2-3 Sätze: Parteien, Zweck, Laufzeit>",
+  "extracted_fields": {{
+    "disclosing_party": "<String|null>",
+    "receiving_party": "<String|null>",
+    "nda_type": "<unilateral|bilateral|multilateral>",
+    "purpose": "<String|null>",
+    "confidential_info_definition": "<String|null>",
+    "exclusions": "<String|null>",
+    "term_years": <Number|null>,
+    "survival_period_years": <Number|null>,
+    "return_of_information": <true|false|null>,
+    "destruction_clause": <true|false|null>,
+    "permitted_disclosures": "<String|null>",
+    "penalty_clause": <true|false|null>,
+    "penalty_amount_eur": <Number|null>,
+    "jurisdiction": "<String|null>",
+    "governing_law": "<String|null>"
+  }},
+  "risk_flags": [
+    {{
+      "severity": "<low|medium|high|critical>",
+      "title": "<Risiko-Bezeichnung>",
+      "description": "<Erklärung>",
+      "clause_snippet": "<Zitat|null>",
+      "policy_reference": "<String|null>"
+    }}
+  ],
+  "overall_risk_level": "<low|medium|high|critical>",
+  "overall_risk_score": <0-100>
+}}
+
+VERTRAGSTEXT:
+\"\"\"{contract_text}\"\"\"
+""".strip()
+
+
+# ============================================================================
+# LIEFERANTENVERTRAG / RAHMENVERTRAG
+# ============================================================================
+
+VENDOR_CONTRACT_SYSTEM_PROMPT = """
+Du bist ein erfahrener Einkaufsjurist und Supply-Chain-Experte.
+Du analysierst Lieferantenverträge und Rahmenvereinbarungen für Procurement und Legal.
+
+Fokus:
+- Lieferkonditionen (Preise, Mengen, Lieferzeiten)
+- Qualitätsanforderungen und Gewährleistung
+- Haftung und Pönalen
+- Strikt JSON-Format
+""".strip()
+
+
+VENDOR_CONTRACT_USER_PROMPT_TEMPLATE = """
+Analysiere den folgenden Lieferantenvertrag/Rahmenvertrag.
+
+ERFORDERLICHE JSON-STRUKTUR:
+
+{{
+  "contract_id": "",
+  "contract_type": "vendor",
+  "language": "de",
+  "summary": "<2-3 Sätze: Parteien, Liefergegenstand, Konditionen>",
+  "extracted_fields": {{
+    "buyer_name": "<String|null>",
+    "supplier_name": "<String|null>",
+    "goods_or_services": "<String|null>",
+    "contract_start_date": "<YYYY-MM-DD|null>",
+    "contract_end_date": "<YYYY-MM-DD|null>",
+    "auto_renew": <true|false|null>,
+    "min_order_value_eur": <Number|null>,
+    "payment_terms_days": <Number|null>,
+    "delivery_terms": "<String|null>",
+    "incoterms": "<String|null>",
+    "warranty_months": <Number|null>,
+    "liability_cap_eur": <Number|null>,
+    "penalty_for_delay": <true|false|null>,
+    "penalty_percent_per_week": <Number|null>,
+    "quality_requirements": "<String|null>",
+    "audit_rights": <true|false|null>,
+    "termination_notice_days": <Number|null>,
+    "exclusivity": <true|false|null>
+  }},
+  "risk_flags": [
+    {{
+      "severity": "<low|medium|high|critical>",
+      "title": "<Risiko-Bezeichnung>",
+      "description": "<Erklärung>",
+      "clause_snippet": "<Zitat|null>",
+      "policy_reference": "<String|null>"
+    }}
+  ],
+  "overall_risk_level": "<low|medium|high|critical>",
+  "overall_risk_score": <0-100>
+}}
+
+VERTRAGSTEXT:
+\"\"\"{contract_text}\"\"\"
+""".strip()
+
+
+# ============================================================================
+# DIENSTLEISTUNGSVERTRAG
+# ============================================================================
+
+SERVICE_CONTRACT_SYSTEM_PROMPT = """
+Du bist ein erfahrener Unternehmensjurist für Dienstleistungsverträge.
+Du analysierst Beratungs-, IT-Service- und sonstige Dienstleistungsverträge.
+
+Fokus:
+- Leistungsbeschreibung und SLAs
+- Vergütung und Abrechnungsmodell
+- Haftung und Gewährleistung
+- Strikt JSON-Format
+""".strip()
+
+
+SERVICE_CONTRACT_USER_PROMPT_TEMPLATE = """
+Analysiere den folgenden Dienstleistungsvertrag.
+
+ERFORDERLICHE JSON-STRUKTUR:
+
+{{
+  "contract_id": "",
+  "contract_type": "service",
+  "language": "de",
+  "summary": "<2-3 Sätze: Parteien, Leistung, Vergütung>",
+  "extracted_fields": {{
+    "client_name": "<String|null>",
+    "provider_name": "<String|null>",
+    "service_description": "<String|null>",
+    "contract_start_date": "<YYYY-MM-DD|null>",
+    "contract_end_date": "<YYYY-MM-DD|null>",
+    "contract_value_eur": <Number|null>,
+    "billing_model": "<fixed_price|time_and_materials|retainer|null>",
+    "hourly_rate_eur": <Number|null>,
+    "payment_terms_days": <Number|null>,
+    "sla_response_hours": <Number|null>,
+    "sla_resolution_hours": <Number|null>,
+    "liability_cap_eur": <Number|null>,
+    "liability_cap_multiple": <Number|null>,
+    "ip_ownership": "<client|provider|shared|null>",
+    "confidentiality_clause": <true|false|null>,
+    "termination_notice_days": <Number|null>,
+    "termination_for_convenience": <true|false|null>,
+    "subcontracting_allowed": <true|false|null>
+  }},
+  "risk_flags": [
+    {{
+      "severity": "<low|medium|high|critical>",
+      "title": "<Risiko-Bezeichnung>",
+      "description": "<Erklärung>",
+      "clause_snippet": "<Zitat|null>",
+      "policy_reference": "<String|null>"
+    }}
+  ],
+  "overall_risk_level": "<low|medium|high|critical>",
+  "overall_risk_score": <0-100>
+}}
+
+VERTRAGSTEXT:
+\"\"\"{contract_text}\"\"\"
+""".strip()
+
+
+# ============================================================================
+# MIETVERTRAG (GEWERBE)
+# ============================================================================
+
+RENTAL_CONTRACT_SYSTEM_PROMPT = """
+Du bist ein erfahrener Immobilienjurist spezialisiert auf Gewerbemietrecht.
+Du analysierst Mietverträge für Büros, Lager und Gewerbeflächen.
+
+Fokus:
+- Mietkonditionen (Kaltmiete, Nebenkosten, Staffelung)
+- Laufzeit und Kündigungsfristen
+- Instandhaltung und Schönheitsreparaturen
+- Strikt JSON-Format
+""".strip()
+
+
+RENTAL_CONTRACT_USER_PROMPT_TEMPLATE = """
+Analysiere den folgenden Mietvertrag (Gewerbe/Büro).
+
+ERFORDERLICHE JSON-STRUKTUR:
+
+{{
+  "contract_id": "",
+  "contract_type": "rental",
+  "language": "de",
+  "summary": "<2-3 Sätze: Parteien, Objekt, Miete, Laufzeit>",
+  "extracted_fields": {{
+    "landlord_name": "<String|null>",
+    "tenant_name": "<String|null>",
+    "property_address": "<String|null>",
+    "property_type": "<office|warehouse|retail|mixed|null>",
+    "area_sqm": <Number|null>,
+    "contract_start_date": "<YYYY-MM-DD|null>",
+    "contract_end_date": "<YYYY-MM-DD|null>",
+    "fixed_term_years": <Number|null>,
+    "monthly_rent_eur": <Number|null>,
+    "monthly_utilities_eur": <Number|null>,
+    "deposit_months": <Number|null>,
+    "rent_escalation_clause": <true|false|null>,
+    "escalation_percent_per_year": <Number|null>,
+    "index_clause": <true|false|null>,
+    "termination_notice_months": <Number|null>,
+    "renewal_option": <true|false|null>,
+    "maintenance_responsibility": "<landlord|tenant|shared|null>",
+    "subletting_allowed": <true|false|null>,
+    "fit_out_contribution_eur": <Number|null>
+  }},
+  "risk_flags": [
+    {{
+      "severity": "<low|medium|high|critical>",
+      "title": "<Risiko-Bezeichnung>",
+      "description": "<Erklärung>",
+      "clause_snippet": "<Zitat|null>",
+      "policy_reference": "<BGB §|null>"
+    }}
+  ],
+  "overall_risk_level": "<low|medium|high|critical>",
+  "overall_risk_score": <0-100>
+}}
+
+VERTRAGSTEXT:
+\"\"\"{contract_text}\"\"\"
+""".strip()
+
+
+# ============================================================================
+# KAUFVERTRAG
+# ============================================================================
+
+PURCHASE_CONTRACT_SYSTEM_PROMPT = """
+Du bist ein erfahrener Wirtschaftsjurist für Kaufverträge.
+Du analysierst Kaufverträge für Waren, Anlagen und Unternehmensbeteiligungen.
+
+Fokus:
+- Kaufgegenstand und Kaufpreis
+- Gewährleistung und Garantien
+- Zahlungskonditionen und Eigentumsübergang
+- Strikt JSON-Format
+""".strip()
+
+
+PURCHASE_CONTRACT_USER_PROMPT_TEMPLATE = """
+Analysiere den folgenden Kaufvertrag.
+
+ERFORDERLICHE JSON-STRUKTUR:
+
+{{
+  "contract_id": "",
+  "contract_type": "purchase",
+  "language": "de",
+  "summary": "<2-3 Sätze: Parteien, Kaufgegenstand, Preis>",
+  "extracted_fields": {{
+    "seller_name": "<String|null>",
+    "buyer_name": "<String|null>",
+    "purchase_object": "<String|null>",
+    "purchase_price_eur": <Number|null>,
+    "payment_terms": "<String|null>",
+    "payment_due_date": "<YYYY-MM-DD|null>",
+    "delivery_date": "<YYYY-MM-DD|null>",
+    "delivery_terms": "<String|null>",
+    "warranty_months": <Number|null>,
+    "warranty_scope": "<String|null>",
+    "liability_exclusions": "<String|null>",
+    "retention_of_title": <true|false|null>,
+    "acceptance_procedure": "<String|null>",
+    "defect_notification_days": <Number|null>,
+    "governing_law": "<String|null>",
+    "jurisdiction": "<String|null>",
+    "arbitration_clause": <true|false|null>
+  }},
+  "risk_flags": [
+    {{
+      "severity": "<low|medium|high|critical>",
+      "title": "<Risiko-Bezeichnung>",
+      "description": "<Erklärung>",
+      "clause_snippet": "<Zitat|null>",
+      "policy_reference": "<BGB §|null>"
+    }}
+  ],
+  "overall_risk_level": "<low|medium|high|critical>",
+  "overall_risk_score": <0-100>
+}}
+
+VERTRAGSTEXT:
+\"\"\"{contract_text}\"\"\"
+""".strip()
+
+
+# ============================================================================
+# ALLGEMEINER VERTRAG (FALLBACK)
+# ============================================================================
+
+GENERAL_CONTRACT_SYSTEM_PROMPT = """
+Du bist ein erfahrener Unternehmensjurist mit breiter Expertise.
+Du analysierst verschiedene Vertragstypen nach deutschem Recht.
+
+Kernprinzipien:
+- Identifiziere den Vertragstyp und die wesentlichen Regelungen
+- Fokus auf Risiken und kritische Klauseln
+- Strikt JSON-Format
+""".strip()
+
+
+GENERAL_CONTRACT_USER_PROMPT_TEMPLATE = """
+Analysiere den folgenden Vertrag nach deutschem Recht.
+
+ERFORDERLICHE JSON-STRUKTUR:
+
+{{
+  "contract_id": "",
+  "contract_type": "general",
+  "language": "de",
+  "summary": "<2-3 Sätze: Parteien, Vertragsgegenstand, wesentliche Konditionen>",
+  "extracted_fields": {{
+    "party_a_name": "<String|null>",
+    "party_a_role": "<String|null>",
+    "party_b_name": "<String|null>",
+    "party_b_role": "<String|null>",
+    "contract_subject": "<String|null>",
+    "contract_start_date": "<YYYY-MM-DD|null>",
+    "contract_end_date": "<YYYY-MM-DD|null>",
+    "contract_value_eur": <Number|null>,
+    "payment_terms": "<String|null>",
+    "termination_notice_days": <Number|null>,
+    "liability_provisions": "<String|null>",
+    "confidentiality_clause": <true|false|null>,
+    "governing_law": "<String|null>",
+    "jurisdiction": "<String|null>",
+    "special_provisions": "<String|null>"
+  }},
+  "risk_flags": [
+    {{
+      "severity": "<low|medium|high|critical>",
+      "title": "<Risiko-Bezeichnung>",
+      "description": "<Erklärung>",
+      "clause_snippet": "<Zitat|null>",
+      "policy_reference": "<String|null>"
+    }}
+  ],
+  "overall_risk_level": "<low|medium|high|critical>",
+  "overall_risk_score": <0-100>
+}}
+
+VERTRAGSTEXT:
+\"\"\"{contract_text}\"\"\"
+""".strip()
+
+
+# ============================================================================
+# PROMPT-FUNKTIONEN
+# ============================================================================
+
+def _prepare_contract_text(contract_text: str, max_chars: int = 7000) -> str:
+    """Bereitet Vertragstext für LLM vor (kürzen, escapen)."""
     if len(contract_text) > max_chars:
         contract_text = contract_text[:max_chars] + "\n\n[... Text gekürzt ...]"
-    
-    # WICHTIG: Escapen der geschweiften Klammern im Vertragstext
-    escaped_text = contract_text.replace("{", "{{").replace("}", "}}")
-    
+    return contract_text.replace("{", "{{").replace("}", "}}")
+
+
+def get_employment_contract_prompt(contract_text: str) -> str:
+    """Prompt für Arbeitsverträge."""
+    escaped_text = _prepare_contract_text(contract_text)
     return EMPLOYMENT_CONTRACT_USER_PROMPT_TEMPLATE.format(contract_text=escaped_text)
 
 
 def get_saas_contract_prompt(contract_text: str) -> str:
-    """
-    Füllt das SaaS-Contract-Userprompt-Template mit echtem Vertragstext.
-    
-    Args:
-        contract_text: Extrahierter Text aus PDF/DOCX
-    
-    Returns:
-        Fertig ausgefülltes Prompt-Template
-    """
-    # Text kürzen auf ~8000 Tokens (ca. 6000-7000 Zeichen)
-    max_chars = 7000
-    if len(contract_text) > max_chars:
-        contract_text = contract_text[:max_chars] + "\n\n[... Text gekürzt ...]"
-    
-    # WICHTIG: Escapen der geschweiften Klammern im Vertragstext
-    escaped_text = contract_text.replace("{", "{{").replace("}", "}}")
-    
+    """Prompt für SaaS-Verträge."""
+    escaped_text = _prepare_contract_text(contract_text)
     return SAAS_CONTRACT_USER_PROMPT_TEMPLATE.format(contract_text=escaped_text)
 
 
-# ============================================================================
-# VALIDIERUNGS-SCHEMAS (Optional: für lokale Validierung vor LLM-Call)
-# ============================================================================
+def get_nda_contract_prompt(contract_text: str) -> str:
+    """Prompt für NDAs/Geheimhaltungsvereinbarungen."""
+    escaped_text = _prepare_contract_text(contract_text)
+    return NDA_CONTRACT_USER_PROMPT_TEMPLATE.format(contract_text=escaped_text)
 
-EMPLOYMENT_CONTRACT_JSON_SCHEMA = {
-    "type": "object",
-    "required": ["contract_id", "contract_type", "language", "summary", "extracted_fields", "risk_flags"],
-    "properties": {
-        "contract_id": {"type": "string"},
-        "contract_type": {"enum": ["employment"]},
-        "language": {"enum": ["de"]},
-        "summary": {"type": "string", "minLength": 10, "maxLength": 500},
-        "extracted_fields": {
-            "type": "object",
-            "properties": {
-                "parties": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "name": {"type": ["string", "null"]},
-                            "role": {"enum": ["employer", "employee", "null"]}
-                        }
-                    }
-                },
-                "start_date": {"type": ["string", "null"], "pattern": "^\\d{4}-\\d{2}-\\d{2}$|^null$"},
-                "fixed_term": {"type": "boolean"},
-                "end_date": {"type": ["string", "null"]},
-                "probation_period_months": {"type": ["number", "null"]},
-                "weekly_hours": {"type": ["number", "null"]},
-                "base_salary_eur": {"type": ["number", "null"]},
-                "vacation_days_per_year": {"type": ["number", "null"]},
-                "notice_period_employee": {"type": ["string", "null"]},
-                "notice_period_employer": {"type": ["string", "null"]},
-                "non_compete_during_term": {"type": "boolean"},
-                "post_contract_non_compete": {"type": "boolean"}
-            }
-        },
-        "risk_flags": {
-            "type": "array",
-            "items": {
-                "type": "object",
-                "required": ["severity", "title", "description"],
-                "properties": {
-                    "severity": {"enum": ["low", "medium", "high"]},
-                    "title": {"type": "string"},
-                    "description": {"type": "string"},
-                    "clause_snippet": {"type": ["string", "null"]},
-                    "policy_reference": {"type": ["string", "null"]}
-                }
-            }
-        }
-    }
+
+def get_vendor_contract_prompt(contract_text: str) -> str:
+    """Prompt für Lieferantenverträge."""
+    escaped_text = _prepare_contract_text(contract_text)
+    return VENDOR_CONTRACT_USER_PROMPT_TEMPLATE.format(contract_text=escaped_text)
+
+
+def get_service_contract_prompt(contract_text: str) -> str:
+    """Prompt für Dienstleistungsverträge."""
+    escaped_text = _prepare_contract_text(contract_text)
+    return SERVICE_CONTRACT_USER_PROMPT_TEMPLATE.format(contract_text=escaped_text)
+
+
+def get_rental_contract_prompt(contract_text: str) -> str:
+    """Prompt für Mietverträge."""
+    escaped_text = _prepare_contract_text(contract_text)
+    return RENTAL_CONTRACT_USER_PROMPT_TEMPLATE.format(contract_text=escaped_text)
+
+
+def get_purchase_contract_prompt(contract_text: str) -> str:
+    """Prompt für Kaufverträge."""
+    escaped_text = _prepare_contract_text(contract_text)
+    return PURCHASE_CONTRACT_USER_PROMPT_TEMPLATE.format(contract_text=escaped_text)
+
+
+def get_general_contract_prompt(contract_text: str) -> str:
+    """Prompt für allgemeine Verträge (Fallback)."""
+    escaped_text = _prepare_contract_text(contract_text)
+    return GENERAL_CONTRACT_USER_PROMPT_TEMPLATE.format(contract_text=escaped_text)
+
+
+# Mapping für einfachen Zugriff
+PROMPT_FUNCTIONS = {
+    "employment": get_employment_contract_prompt,
+    "saas": get_saas_contract_prompt,
+    "nda": get_nda_contract_prompt,
+    "vendor": get_vendor_contract_prompt,
+    "service": get_service_contract_prompt,
+    "rental": get_rental_contract_prompt,
+    "purchase": get_purchase_contract_prompt,
+    "general": get_general_contract_prompt,
 }
 
-SAAS_CONTRACT_JSON_SCHEMA = {
-    "type": "object",
-    "required": ["contract_id", "contract_type", "language", "summary", "extracted_fields", "risk_flags"],
-    "properties": {
-        "contract_id": {"type": "string"},
-        "contract_type": {"enum": ["saas"]},
-        "language": {"enum": ["de"]},
-        "summary": {"type": "string", "minLength": 10, "maxLength": 500},
-        "extracted_fields": {
-            "type": "object",
-            "properties": {
-                "customer_name": {"type": ["string", "null"]},
-                "vendor_name": {"type": ["string", "null"]},
-                "contract_start_date": {"type": ["string", "null"]},
-                "contract_end_date": {"type": ["string", "null"]},
-                "auto_renew": {"type": ["boolean", "null"]},
-                "renewal_notice_days": {"type": ["number", "null"]},
-                "annual_contract_value_eur": {"type": ["number", "null"]},
-                "billing_interval": {"enum": ["monthly", "quarterly", "annual", "null"]},
-                "min_term_months": {"type": ["number", "null"]},
-                "termination_for_convenience": {"type": ["boolean", "null"]},
-                "data_location": {"type": ["string", "null"]},
-                "dp_addendum_included": {"type": ["boolean", "null"]},
-                "liability_cap_multiple_acv": {"type": ["number", "null"]},
-                "uptime_sla_percent": {"type": ["number", "null"]}
-            }
-        },
-        "risk_flags": {
-            "type": "array",
-            "items": {
-                "type": "object",
-                "required": ["severity", "title", "description"],
-                "properties": {
-                    "severity": {"enum": ["low", "medium", "high"]},
-                    "title": {"type": "string"},
-                    "description": {"type": "string"},
-                    "clause_snippet": {"type": ["string", "null"]},
-                    "policy_reference": {"type": ["string", "null"]}
-                }
-            }
-        }
-    }
+SYSTEM_PROMPTS = {
+    "employment": EMPLOYMENT_CONTRACT_SYSTEM_PROMPT,
+    "saas": SAAS_CONTRACT_SYSTEM_PROMPT,
+    "nda": NDA_CONTRACT_SYSTEM_PROMPT,
+    "vendor": VENDOR_CONTRACT_SYSTEM_PROMPT,
+    "service": SERVICE_CONTRACT_SYSTEM_PROMPT,
+    "rental": RENTAL_CONTRACT_SYSTEM_PROMPT,
+    "purchase": PURCHASE_CONTRACT_SYSTEM_PROMPT,
+    "general": GENERAL_CONTRACT_SYSTEM_PROMPT,
 }
 
+
+def get_prompt_for_type(contract_type: str, contract_text: str) -> tuple:
+    """
+    Gibt (system_prompt, user_prompt) für den Vertragstyp zurück.
+    
+    Args:
+        contract_type: employment, saas, nda, vendor, service, rental, purchase, general
+        contract_text: Der zu analysierende Vertragstext
+    
+    Returns:
+        Tuple (system_prompt, user_prompt)
+    """
+    # Fallback auf general wenn Typ unbekannt
+    if contract_type not in PROMPT_FUNCTIONS:
+        contract_type = "general"
+    
+    system_prompt = SYSTEM_PROMPTS[contract_type]
+    user_prompt = PROMPT_FUNCTIONS[contract_type](contract_text)
+    
+    return system_prompt, user_prompt
