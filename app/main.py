@@ -232,34 +232,61 @@ async def dashboard_page():
     """CFO Dashboard"""
     return get_dashboard()
 
-# Placeholder Pages
+# Enterprise Pages mit User-Auth
+from .pages_enterprise import (
+    get_compare_page, get_library_page, get_exports_page,
+    get_settings_page, get_billing_page, get_team_page, get_audit_page
+)
+
+# Admin Users
+ADMIN_USERNAMES = {"luis220195", "admin"}
+ADMIN_EMAILS = {"info@sbsdeutschland.com", "luis@sbsdeutschland.com"}
+
+def get_user_info(request: Request):
+    """Holt User-Info aus SSO oder gibt Defaults zurück."""
+    user = get_optional_user(request)
+    if user:
+        return {
+            "name": user.get("name", user.get("username", "User")),
+            "email": user.get("email", ""),
+            "is_admin": user.get("username") in ADMIN_USERNAMES or user.get("email") in ADMIN_EMAILS
+        }
+    return {"name": "Gast", "email": "", "is_admin": False}
+
 @app.get("/compare", response_class=HTMLResponse)
-async def compare_page():
-    return "<html><head><title>Vertragsvergleich</title></head><body><h1>Vertragsvergleich - Coming Soon</h1><a href='/upload'>Zurück</a></body></html>"
+async def compare_page(request: Request):
+    user = get_user_info(request)
+    return get_compare_page(user["name"])
 
 @app.get("/library", response_class=HTMLResponse)
-async def library_page():
-    return "<html><head><title>Klausel-Bibliothek</title></head><body><h1>Klausel-Bibliothek - Coming Soon</h1><a href='/upload'>Zurück</a></body></html>"
+async def library_page(request: Request):
+    user = get_user_info(request)
+    return get_library_page(user["name"])
 
 @app.get("/exports", response_class=HTMLResponse)
-async def exports_page():
-    return "<html><head><title>Export-Historie</title></head><body><h1>Export-Historie - Coming Soon</h1><a href='/upload'>Zurück</a></body></html>"
+async def exports_page(request: Request):
+    user = get_user_info(request)
+    return get_exports_page(user["name"])
 
 @app.get("/settings", response_class=HTMLResponse)
-async def settings_page():
-    return "<html><head><title>Einstellungen</title></head><body><h1>Einstellungen - Coming Soon</h1><a href='/upload'>Zurück</a></body></html>"
+async def settings_page(request: Request):
+    user = get_user_info(request)
+    return get_settings_page(user["name"], user["email"])
 
 @app.get("/billing", response_class=HTMLResponse)
-async def billing_page():
-    return "<html><head><title>Abrechnung</title></head><body><h1>Abrechnung - Coming Soon</h1><a href='/upload'>Zurück</a></body></html>"
+async def billing_page(request: Request):
+    user = get_user_info(request)
+    return get_billing_page(user["name"])
 
 @app.get("/team", response_class=HTMLResponse)
-async def team_page():
-    return "<html><head><title>Team</title></head><body><h1>Team - Coming Soon</h1><a href='/upload'>Zurück</a></body></html>"
+async def team_page(request: Request):
+    user = get_user_info(request)
+    return get_team_page(user["name"])
 
 @app.get("/audit", response_class=HTMLResponse)
-async def audit_page():
-    return "<html><head><title>Audit-Log</title></head><body><h1>Audit-Log - Coming Soon</h1><a href='/upload'>Zurück</a></body></html>"
+async def audit_page(request: Request):
+    user = get_user_info(request)
+    return get_audit_page(user["name"])
 
 # ============================================================================
 # API V3 ROUTES (Frontend Compatible)
