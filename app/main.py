@@ -389,16 +389,12 @@ async def api_analyze_contract(contract_id: str, request: Request):
     start_time = time.time()
     
     try:
-        if contract_type == "employment":
-            user_prompt = get_employment_contract_prompt(contract_text)
-            raw_result = call_employment_contract_model(user_prompt)
-        elif contract_type == "saas":
-            user_prompt = get_saas_contract_prompt(contract_text)
-            raw_result = call_saas_contract_model(user_prompt)
-        else:
-            # Allgemeine Analyse
-            user_prompt = get_employment_contract_prompt(contract_text)  # Fallback
-            raw_result = call_employment_contract_model(user_prompt)
+        # Alle 8 Vertragstypen mit spezifischen Prompts
+        from .prompts import get_prompt_for_type
+        from .llm_client import call_llm_analysis
+        
+        system_prompt, user_prompt = get_prompt_for_type(contract_type, contract_text)
+        raw_result = call_llm_analysis(system_prompt, user_prompt)
         
         processing_time = time.time() - start_time
         
@@ -514,8 +510,35 @@ async def api_export_json(contract_id: str):
 
 @app.get("/api/v3/contracts/{contract_id}/export/pdf")
 async def api_export_pdf(contract_id: str):
-    """Export als PDF (Placeholder)"""
-    raise HTTPException(status_code=501, detail="PDF export coming soon")
+    """Export als professionelles PDF mit SBS-Branding"""
+    from .pdf_report import generate_contract_pdf
+    
+    conn = _init_db()
+    try:
+        row = conn.execute("SELECT analysis_json FROM analysis_results WHERE contract_id = ?", (contract_id,)).fetchone()
+    finally:
+        conn.close()
+    
+    if not row:
+        raise HTTPException(status_code=404, detail="No analysis found")
+    
+    analysis = json.loads(row[0])
+    
+    try:
+        pdf_bytes = generate_contract_pdf(analysis)
+        
+        filename = analysis.get("source_filename", "contract")
+        if filename.endswith(".pdf"):
+            filename = filename[:-4]
+        
+        return StreamingResponse(
+            io.BytesIO(pdf_bytes),
+            media_type="application/pdf",
+            headers={"Content-Disposition": f"attachment; filename={filename}_analyse.pdf"}
+        )
+    except Exception as e:
+        logger.error(f"PDF generation failed: {e}")
+        raise HTTPException(status_code=500, detail=f"PDF generation failed: {e}")
 
 @app.get("/api/v3/dashboard/summary")
 async def api_dashboard_summary():
