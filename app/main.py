@@ -213,14 +213,318 @@ async def upload_page():
     return get_upload_page()
 
 @app.get("/history", response_class=HTMLResponse)
-async def history_page():
-    """Verlauf Page"""
-    return get_history_page()
+async def history_page(request: Request):
+    """Verlauf Page mit echten Daten aus DB"""
+    user = get_user_info(request)
+    
+    # Verträge aus DB laden
+    conn = _init_db()
+    try:
+        rows = conn.execute(
+            "SELECT contract_id, filename, contract_type, created_at, status, risk_level, risk_score "
+            "FROM contracts ORDER BY created_at DESC LIMIT 50"
+        ).fetchall()
+    finally:
+        conn.close()
+    
+    # Vertragstyp-Labels
+    type_labels = {
+        "employment": "Arbeitsvertrag",
+        "saas": "SaaS-Vertrag",
+        "nda": "NDA",
+        "vendor": "Lieferant",
+        "service": "Dienstleistung",
+        "rental": "Mietvertrag",
+        "purchase": "Kaufvertrag",
+        "general": "Allgemein",
+    }
+    
+    # Tabellen-Rows generieren
+    table_rows = ""
+    for r in rows:
+        contract_id, filename, ctype, created_at, status, risk_level, risk_score = r
+        
+        # Datum formatieren
+        try:
+            dt = datetime.fromisoformat(created_at)
+            date_str = dt.strftime("%d.%m.%Y %H:%M")
+        except:
+            date_str = created_at[:16] if created_at else "-"
+        
+        type_label = type_labels.get(ctype, ctype or "Allgemein")
+        risk_level = risk_level or "low"
+        risk_score = risk_score or 0
+        
+        # Status Badge
+        if status == "analyzed":
+            status_badge = '<span class="badge badge-success">Analysiert</span>'
+        elif status == "uploaded":
+            status_badge = '<span class="badge badge-warning">Hochgeladen</span>'
+        else:
+            status_badge = f'<span class="badge badge-info">{status}</span>'
+        
+        table_rows += f'''
+        <tr onclick="window.location='/api/v3/contracts/{contract_id}'">
+          <td><strong>{filename}</strong></td>
+          <td><span class="badge badge-info">{type_label}</span></td>
+          <td>{date_str}</td>
+          <td>{status_badge}</td>
+          <td>
+            <span class="risk-dot {risk_level}"></span>
+            {risk_level.capitalize()} ({risk_score}/100)
+          </td>
+          <td>
+            <a href="/api/v3/contracts/{contract_id}/export/pdf" class="btn btn-secondary" style="padding:6px 12px;font-size:0.8rem;" onclick="event.stopPropagation();">PDF</a>
+            <a href="/api/v3/contracts/{contract_id}/export/json" class="btn btn-secondary" style="padding:6px 12px;font-size:0.8rem;" onclick="event.stopPropagation();">JSON</a>
+          </td>
+        </tr>
+        '''
+    
+    # Leerer Zustand
+    if not rows:
+        table_rows = '''
+        <tr>
+          <td colspan="6" style="text-align:center;padding:60px;">
+            <div style="font-size:3rem;margin-bottom:16px;">📄</div>
+            <p style="font-weight:600;margin-bottom:8px;">Keine Verträge vorhanden</p>
+            <p style="color:var(--sbs-muted);">Laden Sie Ihren ersten Vertrag hoch.</p>
+            <a href="/upload" class="btn btn-primary" style="margin-top:16px;">Vertrag hochladen</a>
+          </td>
+        </tr>
+        '''
+    
+    return get_history_page_dynamic(user["name"], table_rows, len(rows))
+
+
+def get_history_page_dynamic(user_name: str, table_rows: str, total_count: int):
+    """Generiert History-Seite mit dynamischen Daten."""
+    from .pages_enterprise import PAGE_CSS, get_header, get_footer
+    
+    user_initial = user_name[0].upper() if user_name else "U"
+    
+    return f'''<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verlauf | SBS Contract Intelligence</title>
+  <link rel="icon" href="/static/favicon.ico">
+  {PAGE_CSS}
+  <style>
+    .history-table {{ width: 100%; border-collapse: collapse; }}
+    .history-table th, .history-table td {{ padding: 16px 20px; text-align: left; border-bottom: 1px solid var(--sbs-border); }}
+    .history-table th {{ background: #f8fafc; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--sbs-muted); }}
+    .history-table tr:hover {{ background: rgba(0,56,86,0.02); cursor: pointer; }}
+    .risk-dot {{ display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; }}
+    .risk-dot.critical {{ background: #dc2626; }}
+    .risk-dot.high {{ background: #ea580c; }}
+    .risk-dot.medium {{ background: #d97706; }}
+    .risk-dot.low {{ background: #16a34a; }}
+    .badge {{ display: inline-flex; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }}
+    .badge-success {{ background: rgba(16,185,129,0.1); color: #059669; }}
+    .badge-warning {{ background: rgba(245,158,11,0.1); color: #d97706; }}
+    .badge-info {{ background: rgba(0,56,86,0.1); color: #003856; }}
+  </style>
+</head>
+<body>
+{get_header(user_name, "verlauf")}
+<main>
+<div class="hero">
+  <div class="container">
+    <div class="hero-badge"><span class="dot"></span> VERLAUF</div>
+    <h1>📊 Analysierte Verträge</h1>
+    <p>Übersicht aller analysierten Verträge mit Risikobewertung.</p>
+  </div>
+</div>
+<div class="page-container">
+  <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 32px;">
+    <div class="stat-card"><div class="stat-value">{total_count}</div><div class="stat-label">Verträge gesamt</div></div>
+    <div class="stat-card"><div class="stat-value">{total_count}</div><div class="stat-label">Analysiert</div></div>
+    <div class="stat-card"><div class="stat-value">0</div><div class="stat-label">Ausstehend</div></div>
+  </div>
+  <div class="content-card">
+    <div class="content-card-header">
+      <h3 class="content-card-title">Alle Verträge</h3>
+      <a href="/upload" class="btn btn-primary">+ Neuer Vertrag</a>
+    </div>
+    <div class="content-card-body" style="padding:0;">
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th>Dateiname</th>
+            <th>Typ</th>
+            <th>Datum</th>
+            <th>Status</th>
+            <th>Risiko</th>
+            <th>Export</th>
+          </tr>
+        </thead>
+        <tbody>
+          {table_rows}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</main>
+{get_footer()}
+</body>
+</html>'''
 
 @app.get("/analytics", response_class=HTMLResponse)
-async def analytics_page():
-    """Analytics Dashboard"""
-    return get_analytics_page()
+async def analytics_page(request: Request):
+    """Analytics Dashboard mit echten Daten"""
+    user = get_user_info(request)
+    
+    # KPIs aus DB laden
+    conn = _init_db()
+    try:
+        total = conn.execute("SELECT COUNT(*) FROM contracts").fetchone()[0] or 0
+        analyzed = conn.execute("SELECT COUNT(*) FROM contracts WHERE status = 'analyzed'").fetchone()[0] or 0
+        
+        # Risiko-Verteilung
+        critical = conn.execute("SELECT COUNT(*) FROM contracts WHERE risk_level = 'critical'").fetchone()[0] or 0
+        high = conn.execute("SELECT COUNT(*) FROM contracts WHERE risk_level = 'high'").fetchone()[0] or 0
+        medium = conn.execute("SELECT COUNT(*) FROM contracts WHERE risk_level = 'medium'").fetchone()[0] or 0
+        low = conn.execute("SELECT COUNT(*) FROM contracts WHERE risk_level = 'low'").fetchone()[0] or 0
+        
+        # Durchschnittlicher Risiko-Score
+        avg_score = conn.execute("SELECT AVG(risk_score) FROM contracts WHERE risk_score IS NOT NULL").fetchone()[0] or 0
+        
+        # Vertragstypen-Verteilung
+        type_counts = conn.execute(
+            "SELECT contract_type, COUNT(*) as cnt FROM contracts GROUP BY contract_type ORDER BY cnt DESC"
+        ).fetchall()
+        
+        # Letzte 7 Tage
+        recent = conn.execute(
+            "SELECT COUNT(*) FROM contracts WHERE created_at > datetime('now', '-7 days')"
+        ).fetchone()[0] or 0
+    finally:
+        conn.close()
+    
+    # Vertragstyp-Labels
+    type_labels = {
+        "employment": "Arbeitsvertrag", "saas": "SaaS-Vertrag", "nda": "NDA",
+        "vendor": "Lieferant", "service": "Dienstleistung", "rental": "Mietvertrag",
+        "purchase": "Kaufvertrag", "general": "Allgemein",
+    }
+    
+    # Typ-Bars generieren
+    type_bars = ""
+    max_count = max([c[1] for c in type_counts], default=1)
+    for ctype, count in type_counts:
+        label = type_labels.get(ctype, ctype or "Unbekannt")
+        width = int((count / max_count) * 100)
+        type_bars += f'''
+        <div style="margin-bottom:12px;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <span>{label}</span><span style="font-weight:600;">{count}</span>
+          </div>
+          <div style="background:var(--sbs-border);border-radius:4px;height:8px;">
+            <div style="background:var(--sbs-blue);border-radius:4px;height:100%;width:{width}%;"></div>
+          </div>
+        </div>
+        '''
+    
+    return get_analytics_page_dynamic(user["name"], total, analyzed, recent, avg_score, critical, high, medium, low, type_bars)
+
+
+def get_analytics_page_dynamic(user_name: str, total: int, analyzed: int, recent: int, avg_score: float, critical: int, high: int, medium: int, low: int, type_bars: str):
+    """Generiert Analytics-Seite mit dynamischen Daten."""
+    from .pages_enterprise import PAGE_CSS, get_header, get_footer
+    
+    # Risiko-Farbe basierend auf Durchschnitt
+    if avg_score >= 70:
+        score_color = "#dc2626"
+    elif avg_score >= 50:
+        score_color = "#d97706"
+    else:
+        score_color = "#16a34a"
+    
+    return f'''<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analytics | SBS Contract Intelligence</title>
+  <link rel="icon" href="/static/favicon.ico">
+  {PAGE_CSS}
+</head>
+<body>
+{get_header(user_name, "analytics")}
+<main>
+<div class="hero">
+  <div class="container">
+    <div class="hero-badge"><span class="dot"></span> ANALYTICS</div>
+    <h1>📈 Analytics Dashboard</h1>
+    <p>Überblick über alle Vertragsanalysen und Risikobewertungen.</p>
+  </div>
+</div>
+<div class="page-container">
+  <!-- KPI Cards -->
+  <div class="stats-grid" style="margin-bottom:32px;">
+    <div class="stat-card">
+      <div class="stat-value">{total}</div>
+      <div class="stat-label">Verträge gesamt</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">{analyzed}</div>
+      <div class="stat-label">Analysiert</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">{recent}</div>
+      <div class="stat-label">Letzte 7 Tage</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="color:{score_color};">{avg_score:.0f}</div>
+      <div class="stat-label">Ø Risiko-Score</div>
+    </div>
+  </div>
+  
+  <div class="grid-2">
+    <!-- Risiko-Verteilung -->
+    <div class="content-card">
+      <div class="content-card-header">
+        <h3 class="content-card-title">⚠️ Risiko-Verteilung</h3>
+      </div>
+      <div class="content-card-body">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;text-align:center;">
+          <div style="padding:20px;background:rgba(220,38,38,0.1);border-radius:12px;">
+            <div style="font-size:2rem;font-weight:700;color:#dc2626;">{critical}</div>
+            <div style="font-size:0.85rem;color:var(--sbs-muted);">Kritisch</div>
+          </div>
+          <div style="padding:20px;background:rgba(234,88,12,0.1);border-radius:12px;">
+            <div style="font-size:2rem;font-weight:700;color:#ea580c;">{high}</div>
+            <div style="font-size:0.85rem;color:var(--sbs-muted);">Hoch</div>
+          </div>
+          <div style="padding:20px;background:rgba(217,119,6,0.1);border-radius:12px;">
+            <div style="font-size:2rem;font-weight:700;color:#d97706;">{medium}</div>
+            <div style="font-size:0.85rem;color:var(--sbs-muted);">Mittel</div>
+          </div>
+          <div style="padding:20px;background:rgba(22,163,74,0.1);border-radius:12px;">
+            <div style="font-size:2rem;font-weight:700;color:#16a34a;">{low}</div>
+            <div style="font-size:0.85rem;color:var(--sbs-muted);">Niedrig</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Vertragstypen -->
+    <div class="content-card">
+      <div class="content-card-header">
+        <h3 class="content-card-title">📊 Vertragstypen</h3>
+      </div>
+      <div class="content-card-body">
+        {type_bars if type_bars else '<p style="color:var(--sbs-muted);text-align:center;">Keine Daten</p>'}
+      </div>
+    </div>
+  </div>
+</div>
+</main>
+{get_footer()}
+</body>
+</html>'''
 
 @app.get("/help", response_class=HTMLResponse)
 async def help_page():
