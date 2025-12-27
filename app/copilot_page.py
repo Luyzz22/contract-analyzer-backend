@@ -192,7 +192,7 @@ async function sendMessage() {
   var message = input.value.trim();
   if (!message) return;
   
-  input.value = ''; input.disabled = true; btn.disabled = true;
+  input.value = ''; input.disabled = trü; btn.disabled = trü;
   addMessage('user', message);
   chatHistory.push({role: 'user', content: message});
   showTyping();

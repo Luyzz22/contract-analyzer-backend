@@ -1,5 +1,5 @@
 """
-Onboarding Flow für neue User
+Onboarding Flow für neü User
 - Willkommens-Wizard
 - Feature-Highlights
 - Erster Vertrag Upload
@@ -99,7 +99,7 @@ def get_onboarding_page(user_name: str = "User", user_email: str = None, step: i
           <div class="feature-card" onclick="selectFeature(this, 'deadlines')">
             <div class="feature-icon">⏰</div>
             <div class="feature-title">Fristen-Alerts</div>
-            <div class="feature-desc">Nie wieder eine Kuendigungsfrist verpassen</div>
+            <div class="feature-desc">Nie wieder eine Kündigungsfrist verpassen</div>
           </div>
           <div class="feature-card" onclick="selectFeature(this, 'copilot')">
             <div class="feature-icon">🤖</div>
@@ -130,16 +130,16 @@ def get_onboarding_page(user_name: str = "User", user_email: str = None, step: i
           <div class="upload-icon">📎</div>
           <div class="upload-text">
             <strong>Vertrag hier ablegen</strong>
-            oder klicken zum Auswaehlen (PDF, max. 20MB)
+            oder klicken zum Auswählen (PDF, max. 20MB)
           </div>
           <input type="file" id="fileInput" accept=".pdf" style="display:none" onchange="handleFile(this)">
         </div>
         <p id="fileName" style="text-align:center;margin-top:12px;color:#10b981;display:none;"></p>
         
         <div class="btn-row">
-          <button class="btn btn-secondary" onclick="prevStep()">Zurueck</button>
+          <button class="btn btn-secondary" onclick="prevStep()">Zurück</button>
           <div>
-            <button class="btn btn-skip" onclick="nextStep()">Ueberspringen</button>
+            <button class="btn btn-skip" onclick="nextStep()">Überspringen</button>
             <button class="btn btn-primary" id="analyzeBtn" onclick="analyzeContract()" disabled>Analysieren</button>
           </div>
         </div>
@@ -149,7 +149,7 @@ def get_onboarding_page(user_name: str = "User", user_email: str = None, step: i
       <div id="step3" class="step-content">
         <h2 style="text-align:center;margin-bottom:8px;">Personalisieren Sie Ihre Erfahrung</h2>
         <p style="text-align:center;color:#64748b;margin-bottom:24px;">
-          Waehlen Sie, welche Benachrichtigungen Sie erhalten moechten
+          Wählen Sie, welche Benachrichtigungen Sie erhalten möchten
         </p>
         
         <div class="checklist">
@@ -164,7 +164,7 @@ def get_onboarding_page(user_name: str = "User", user_email: str = None, step: i
             <input type="checkbox" id="notifyWeekly" checked>
             <label for="notifyWeekly">
               Woechentliche Zusammenfassung
-              <small>Ueberblick ueber anstehende Fristen</small>
+              <small>Überblick ueber anstehende Fristen</small>
             </label>
           </div>
           <div class="checklist-item">
@@ -178,13 +178,13 @@ def get_onboarding_page(user_name: str = "User", user_email: str = None, step: i
             <input type="checkbox" id="enable2FA">
             <label for="enable2FA">
               2FA aktivieren
-              <small>Zusaetzliche Sicherheit fuer Ihr Konto</small>
+              <small>Zusaetzliche Sicherheit für Ihr Konto</small>
             </label>
           </div>
         </div>
         
         <div class="btn-row">
-          <button class="btn btn-secondary" onclick="prevStep()">Zurueck</button>
+          <button class="btn btn-secondary" onclick="prevStep()">Zurück</button>
           <button class="btn btn-primary" onclick="saveSettings()">Einstellungen speichern</button>
         </div>
       </div>
@@ -260,14 +260,14 @@ async function analyzeContract() {
   if (!selectedFile) return;
   
   const btn = document.getElementById('analyzeBtn');
-  btn.disabled = true;
+  btn.disabled = trü;
   btn.textContent = 'Analysiere...';
   
   const formData = new FormData();
   formData.append('file', selectedFile);
   
   try {
-    const res = await fetch('/api/contracts/upload', {
+    const res = await fetch('/api/v3/contracts/upload', {
       method: 'POST',
       body: formData
     });
@@ -303,7 +303,7 @@ async function saveSettings() {
     
     if (settings.enable_2fa) {
       // Redirect to 2FA setup after onboarding
-      sessionStorage.setItem('setup2fa', 'true');
+      sessionStorage.setItem('setup2fa', 'trü');
     }
     
     nextStep();

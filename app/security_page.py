@@ -57,7 +57,7 @@ def get_security_page(user_name: str = "User", user_email: str = None):
 <div class="hero" style="padding:40px 24px;">
   <div class="container" style="text-align:center;">
     <h1 style="font-size:2rem;margin:12px 0;">Sicherheitseinstellungen</h1>
-    <p style="opacity:0.9;">Schuetzen Sie Ihr Konto mit Zwei-Faktor-Authentifizierung</p>
+    <p style="opacity:0.9;">Schützen Sie Ihr Konto mit Zwei-Faktor-Authentifizierung</p>
   </div>
 </div>
 
@@ -66,7 +66,7 @@ def get_security_page(user_name: str = "User", user_email: str = None):
     <div style="display:flex;justify-content:space-between;align-items:start;">
       <div>
         <h3>Zwei-Faktor-Authentifizierung (2FA)</h3>
-        <p>Zusaetzliche Sicherheitsebene fuer Ihr Konto mit TOTP-App (Google Authenticator, Authy, etc.)</p>
+        <p>Zusaetzliche Sicherheitsebene für Ihr Konto mit TOTP-App (Google Authenticator, Authy, etc.)</p>
       </div>
       <span id="2faStatus" class="status-badge status-disabled">Deaktiviert</span>
     </div>
@@ -81,16 +81,16 @@ def get_security_page(user_name: str = "User", user_email: str = None):
 
   <div class="security-card">
     <h3>Letzte Anmeldeversuche</h3>
-    <p>Ueberpruefen Sie verdaechtige Aktivitaeten</p>
+    <p>Überprüfen Sie verdaechtige Aktivitaeten</p>
     <div id="attemptsList" class="attempts-list">
-      <p style="color:#94a3b8;text-align:center;">Keine Daten verfuegbar</p>
+      <p style="color:#94a3b8;text-align:center;">Keine Daten verfügbar</p>
     </div>
   </div>
   
   <div class="security-card">
-    <h3>Passwort aendern</h3>
-    <p>Aendern Sie regelmaessig Ihr Passwort fuer maximale Sicherheit</p>
-    <button class="btn-2fa btn-secondary" onclick="alert('SSO-Passwort wird ueber Google verwaltet')">Passwort aendern</button>
+    <h3>Passwort ändern</h3>
+    <p>Ändern Sie regelmaessig Ihr Passwort für maximale Sicherheit</p>
+    <button class="btn-2fa btn-secondary" onclick="alert('SSO-Passwort wird ueber Google verwaltet')">Passwort ändern</button>
   </div>
 </div>
 
@@ -117,9 +117,9 @@ def get_security_page(user_name: str = "User", user_email: str = None):
       <h2>Code bestaetigen</h2>
       <p>Geben Sie den 6-stelligen Code aus Ihrer App ein</p>
       <input type="text" id="verifyCode" class="code-input" maxlength="6" placeholder="000000" autocomplete="off">
-      <p id="verifyError" style="color:#991b1b;display:none;">Ungueltiger Code</p>
+      <p id="verifyError" style="color:#991b1b;display:none;">Ungültiger Code</p>
       <div class="modal-actions">
-        <button class="btn-secondary" onclick="showStep(1)">Zurueck</button>
+        <button class="btn-secondary" onclick="showStep(1)">Zurück</button>
         <button class="btn-2fa btn-enable" onclick="verify2FA()">Bestaetigen</button>
       </div>
     </div>
@@ -128,7 +128,7 @@ def get_security_page(user_name: str = "User", user_email: str = None):
     <div id="step3" class="setup-step" style="display:none;">
       <div class="step-indicator"><span class="step"></span><span class="step"></span><span class="step active"></span></div>
       <h2>Backup-Codes sichern</h2>
-      <p>Speichern Sie diese Codes an einem sicheren Ort. Sie koennen sie verwenden, falls Sie keinen Zugriff auf Ihre App haben.</p>
+      <p>Speichern Sie diese Codes an einem sicheren Ort. Sie können sie verwenden, falls Sie keinen Zugriff auf Ihre App haben.</p>
       <div class="backup-codes">
         <h4>Ihre Backup-Codes:</h4>
         <ul id="backupCodesList"></ul>
@@ -146,7 +146,7 @@ def get_security_page(user_name: str = "User", user_email: str = None):
     <h2>2FA deaktivieren</h2>
     <p>Geben Sie Ihren aktuellen 2FA-Code ein, um die Zwei-Faktor-Authentifizierung zu deaktivieren.</p>
     <input type="text" id="disableCode" class="code-input" maxlength="6" placeholder="000000" autocomplete="off">
-    <p id="disableError" style="color:#991b1b;display:none;">Ungueltiger Code</p>
+    <p id="disableError" style="color:#991b1b;display:none;">Ungültiger Code</p>
     <div class="modal-actions">
       <button class="btn-secondary" onclick="closeDisableModal()">Abbrechen</button>
       <button class="btn-2fa btn-disable" onclick="disable2FA()">Deaktivieren</button>
@@ -236,7 +236,7 @@ async function verify2FA() {
       list.innerHTML = data.backup_codes.map(c => '<li>' + c + '</li>').join('');
       showStep(3);
     } else {
-      document.getElementById('verifyError').textContent = data.error || 'Ungueltiger Code';
+      document.getElementById('verifyError').textContent = data.error || 'Ungültiger Code';
       document.getElementById('verifyError').style.display = 'block';
     }
   } catch (e) {
@@ -282,7 +282,7 @@ async function disable2FA() {
       closeDisableModal();
       load2FAStatus();
     } else {
-      document.getElementById('disableError').textContent = data.error || 'Ungueltiger Code';
+      document.getElementById('disableError').textContent = data.error || 'Ungültiger Code';
       document.getElementById('disableError').style.display = 'block';
     }
   } catch (e) {

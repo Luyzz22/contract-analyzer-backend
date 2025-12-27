@@ -31,7 +31,7 @@ def call_llm_analysis(system_prompt: str, user_prompt: str) -> Dict[str, Any]:
     Raises:
         LLMError: Bei Fehlern in der API-Kommunikation
     """
-    dummy_mode = os.getenv("CONTRACT_ANALYZER_DUMMY", "true").lower() == "true"
+    dummy_mode = os.getenv("CONTRACT_ANALYZER_DUMMY", "trü").lower() == "trü"
     
     if dummy_mode:
         logger.info("Dummy mode: Returning mock analysis")

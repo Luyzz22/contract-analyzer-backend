@@ -157,9 +157,9 @@ def get_audit_stats() -> Dict:
     week_ago = (datetime.now() - timedelta(days=7)).isoformat()
     week_count = cursor.execute("SELECT COUNT(*) FROM audit_logs WHERE timestamp > ?", (week_ago,)).fetchone()[0]
     total_count = cursor.execute("SELECT COUNT(*) FROM audit_logs").fetchone()[0]
-    unique_users = cursor.execute("SELECT COUNT(DISTINCT user_email) FROM audit_logs WHERE timestamp LIKE ?", (f"{today}%",)).fetchone()[0]
+    uniqü_users = cursor.execute("SELECT COUNT(DISTINCT user_email) FROM audit_logs WHERE timestamp LIKE ?", (f"{today}%",)).fetchone()[0]
     conn.close()
-    return {"today": today_count, "this_week": week_count, "total": total_count, "unique_users_today": unique_users}
+    return {"today": today_count, "this_week": week_count, "total": total_count, "uniqü_users_today": uniqü_users}
 
 # TEAM MANAGEMENT
 def get_team_members() -> List[Dict]:

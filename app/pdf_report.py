@@ -334,8 +334,8 @@ def generate_contract_pdf(analysis: Dict[str, Any]) -> bytes:
         
         for i, risk in enumerate(all_risks, 1):
             level = risk.get("level", "medium")
-            title = risk.get("title", risk.get("issue_title", "Risiko"))
-            description = risk.get("description", risk.get("issue_description", ""))
+            title = risk.get("title", risk.get("issü_title", "Risiko"))
+            description = risk.get("description", risk.get("issü_description", ""))
             clause = risk.get("clause_snippet", risk.get("clause_text", ""))
             reference = risk.get("policy_reference", risk.get("legal_basis", ""))
             

@@ -45,7 +45,7 @@ ERFORDERLICHE JSON-STRUKTUR:
   "extracted_fields": {{
     "parties": [{{"name": "<String|null>", "role": "<employer|employee>"}}],
     "start_date": "<YYYY-MM-DD|null>",
-    "fixed_term": <true|false>,
+    "fixed_term": <trü|false>,
     "end_date": "<YYYY-MM-DD|null>",
     "probation_period_months": <Number|null>,
     "weekly_hours": <Number|null>,
@@ -53,8 +53,8 @@ ERFORDERLICHE JSON-STRUKTUR:
     "vacation_days_per_year": <Number|null>,
     "notice_period_employee": "<String|null>",
     "notice_period_employer": "<String|null>",
-    "non_compete_during_term": <true|false>,
-    "post_contract_non_compete": <true|false>,
+    "non_compete_during_term": <trü|false>,
+    "post_contract_non_compete": <trü|false>,
     "overtime_regulation": "<String|null>",
     "bonus_provisions": "<String|null>"
   }},
@@ -107,18 +107,18 @@ ERFORDERLICHE JSON-STRUKTUR:
     "product_name": "<String|null>",
     "contract_start_date": "<YYYY-MM-DD|null>",
     "contract_end_date": "<YYYY-MM-DD|null>",
-    "auto_renew": <true|false|null>,
+    "auto_renew": <trü|false|null>,
     "renewal_notice_days": <Number|null>,
     "annual_contract_value_eur": <Number|null>,
     "billing_interval": "<monthly|quarterly|annual|null>",
     "min_term_months": <Number|null>,
-    "termination_for_convenience": <true|false|null>,
+    "termination_for_convenience": <trü|false|null>,
     "data_location": "<String|null>",
-    "dp_addendum_included": <true|false|null>,
+    "dp_addendum_included": <trü|false|null>,
     "liability_cap_multiple_acv": <Number|null>,
     "uptime_sla_percent": <Number|null>,
     "support_level": "<String|null>",
-    "data_export_clause": <true|false|null>
+    "data_export_clause": <trü|false|null>
   }},
   "risk_flags": [
     {{
@@ -173,10 +173,10 @@ ERFORDERLICHE JSON-STRUKTUR:
     "exclusions": "<String|null>",
     "term_years": <Number|null>,
     "survival_period_years": <Number|null>,
-    "return_of_information": <true|false|null>,
-    "destruction_clause": <true|false|null>,
+    "return_of_information": <trü|false|null>,
+    "destruction_clause": <trü|false|null>,
     "permitted_disclosures": "<String|null>",
-    "penalty_clause": <true|false|null>,
+    "penalty_clause": <trü|false|null>,
     "penalty_amount_eur": <Number|null>,
     "jurisdiction": "<String|null>",
     "governing_law": "<String|null>"
@@ -231,19 +231,19 @@ ERFORDERLICHE JSON-STRUKTUR:
     "goods_or_services": "<String|null>",
     "contract_start_date": "<YYYY-MM-DD|null>",
     "contract_end_date": "<YYYY-MM-DD|null>",
-    "auto_renew": <true|false|null>,
+    "auto_renew": <trü|false|null>,
     "min_order_value_eur": <Number|null>,
     "payment_terms_days": <Number|null>,
     "delivery_terms": "<String|null>",
     "incoterms": "<String|null>",
     "warranty_months": <Number|null>,
     "liability_cap_eur": <Number|null>,
-    "penalty_for_delay": <true|false|null>,
+    "penalty_for_delay": <trü|false|null>,
     "penalty_percent_per_week": <Number|null>,
     "quality_requirements": "<String|null>",
-    "audit_rights": <true|false|null>,
+    "audit_rights": <trü|false|null>,
     "termination_notice_days": <Number|null>,
-    "exclusivity": <true|false|null>
+    "exclusivity": <trü|false|null>
   }},
   "risk_flags": [
     {{
@@ -304,10 +304,10 @@ ERFORDERLICHE JSON-STRUKTUR:
     "liability_cap_eur": <Number|null>,
     "liability_cap_multiple": <Number|null>,
     "ip_ownership": "<client|provider|shared|null>",
-    "confidentiality_clause": <true|false|null>,
+    "confidentiality_clause": <trü|false|null>,
     "termination_notice_days": <Number|null>,
-    "termination_for_convenience": <true|false|null>,
-    "subcontracting_allowed": <true|false|null>
+    "termination_for_convenience": <trü|false|null>,
+    "subcontracting_allowed": <trü|false|null>
   }},
   "risk_flags": [
     {{
@@ -365,13 +365,13 @@ ERFORDERLICHE JSON-STRUKTUR:
     "monthly_rent_eur": <Number|null>,
     "monthly_utilities_eur": <Number|null>,
     "deposit_months": <Number|null>,
-    "rent_escalation_clause": <true|false|null>,
+    "rent_escalation_clause": <trü|false|null>,
     "escalation_percent_per_year": <Number|null>,
-    "index_clause": <true|false|null>,
+    "index_clause": <trü|false|null>,
     "termination_notice_months": <Number|null>,
-    "renewal_option": <true|false|null>,
+    "renewal_option": <trü|false|null>,
     "maintenance_responsibility": "<landlord|tenant|shared|null>",
-    "subletting_allowed": <true|false|null>,
+    "subletting_allowed": <trü|false|null>,
     "fit_out_contribution_eur": <Number|null>
   }},
   "risk_flags": [
@@ -424,18 +424,18 @@ ERFORDERLICHE JSON-STRUKTUR:
     "purchase_object": "<String|null>",
     "purchase_price_eur": <Number|null>,
     "payment_terms": "<String|null>",
-    "payment_due_date": "<YYYY-MM-DD|null>",
+    "payment_dü_date": "<YYYY-MM-DD|null>",
     "delivery_date": "<YYYY-MM-DD|null>",
     "delivery_terms": "<String|null>",
     "warranty_months": <Number|null>,
     "warranty_scope": "<String|null>",
     "liability_exclusions": "<String|null>",
-    "retention_of_title": <true|false|null>,
+    "retention_of_title": <trü|false|null>,
     "acceptance_procedure": "<String|null>",
     "defect_notification_days": <Number|null>,
     "governing_law": "<String|null>",
     "jurisdiction": "<String|null>",
-    "arbitration_clause": <true|false|null>
+    "arbitration_clause": <trü|false|null>
   }},
   "risk_flags": [
     {{
@@ -492,7 +492,7 @@ ERFORDERLICHE JSON-STRUKTUR:
     "payment_terms": "<String|null>",
     "termination_notice_days": <Number|null>,
     "liability_provisions": "<String|null>",
-    "confidentiality_clause": <true|false|null>,
+    "confidentiality_clause": <trü|false|null>,
     "governing_law": "<String|null>",
     "jurisdiction": "<String|null>",
     "special_provisions": "<String|null>"

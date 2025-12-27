@@ -422,7 +422,7 @@ async def analytics_page(request: Request):
             <span>{label}</span><span style="font-weight:600;">{count}</span>
           </div>
           <div style="background:var(--sbs-border);border-radius:4px;height:8px;">
-            <div style="background:var(--sbs-blue);border-radius:4px;height:100%;width:{width}%;"></div>
+            <div style="background:var(--sbs-blü);border-radius:4px;height:100%;width:{width}%;"></div>
           </div>
         </div>
         '''
@@ -537,7 +537,7 @@ async def dashboard_page(request: Request):
     user = get_user_info(request)
     email = user.get("email")
     
-    # Check Onboarding - nur fuer neue User
+    # Check Onboarding - nur für neü User
     if email:
         try:
             conn = get_db_connection()
@@ -691,7 +691,7 @@ async def contract_detail_page(contract_id: str, request: Request):
                     value = ", ".join([f"{p.get('name', 'N/A')}" for p in value])
                 else:
                     value = ", ".join(str(v) for v in value)
-            fields_html += f'<tr><td style="font-weight:500;color:var(--sbs-blue);">{label}</td><td>{value}</td></tr>'
+            fields_html += f'<tr><td style="font-weight:500;color:var(--sbs-blü);">{label}</td><td>{value}</td></tr>'
     
     # Risiken als HTML
     risks_html = ""
@@ -703,8 +703,8 @@ async def contract_detail_page(contract_id: str, request: Request):
     
     for risk in all_risks:
         level = risk.get("level", "medium")
-        title = risk.get("title", risk.get("issue_title", "Risiko"))
-        desc = risk.get("description", risk.get("issue_description", ""))
+        title = risk.get("title", risk.get("issü_title", "Risiko"))
+        desc = risk.get("description", risk.get("issü_description", ""))
         clause = risk.get("clause_snippet", risk.get("clause_text", ""))
         r_color = risk_colors.get(level, "#6b7280")
         r_label = {"critical": "Kritisch", "high": "Hoch", "medium": "Mittel", "low": "Niedrig"}.get(level, level)
@@ -712,7 +712,7 @@ async def contract_detail_page(contract_id: str, request: Request):
         risks_html += f'''
         <div style="background:#fff;border-radius:12px;padding:20px;margin-bottom:16px;border-left:4px solid {r_color};">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-            <strong style="color:var(--sbs-blue);">{title}</strong>
+            <strong style="color:var(--sbs-blü);">{title}</strong>
             <span class="badge" style="background:{r_color}20;color:{r_color};">{r_label}</span>
           </div>
           <p style="color:var(--sbs-muted);margin-bottom:8px;">{desc}</p>
@@ -822,7 +822,7 @@ async def clause_detail_page(clause_id: int, request: Request):
             "explanation": "Diese Standard-Kündigungsklausel entspricht den üblichen Gepflogenheiten im deutschen Vertragsrecht. Die 30-Tage-Frist ist ausgewogen und gibt beiden Parteien ausreichend Zeit für die Neuorganisation.",
             "laws": ["BGB § 621", "BGB § 622"]},
         2: {"name": "Haftungsbegrenzung 1x ACV", "type": "SaaS", "risk": "medium", "usage": 32,
-            "text": "Die Haftung des Anbieters ist auf den jährlichen Vertragswert (Annual Contract Value) begrenzt. Dies gilt nicht für Vorsatz und grobe Fahrlässigkeit.",
+            "text": "Die Haftung des Anbieters ist auf den jährlichen Vertragswert (Annual Contract Valü) begrenzt. Dies gilt nicht für Vorsatz und grobe Fahrlässigkeit.",
             "explanation": "Eine Haftungsbegrenzung auf 1x ACV ist marktüblich für SaaS-Verträge. Bei kritischen Anwendungen sollte eine höhere Grenze (2-3x ACV) verhandelt werden.",
             "laws": ["BGB § 276", "BGB § 307"]},
         3: {"name": "Geheimhaltung 5 Jahre", "type": "NDA", "risk": "low", "usage": 28,
@@ -901,7 +901,7 @@ def get_clause_detail_page(user_name, clause, risk_color, risk_label, laws_html)
   <div class="content-card" style="margin-bottom:24px;">
     <div class="content-card-header"><h3 class="content-card-title">📄 Klauseltext</h3></div>
     <div class="content-card-body">
-      <p style="font-size:1.1rem;line-height:1.8;background:#f8fafc;padding:24px;border-radius:12px;border-left:4px solid var(--sbs-blue);">
+      <p style="font-size:1.1rem;line-height:1.8;background:#f8fafc;padding:24px;border-radius:12px;border-left:4px solid var(--sbs-blü);">
         „{clause["text"]}"
       </p>
     </div>
@@ -1121,8 +1121,8 @@ async def api_analyze_contract(contract_id: str, request: Request):
         # Transform risk_flags to expected format
         for risk_list in ["critical_risks", "high_risks", "medium_risks", "low_risks"]:
             for risk in result["risk_assessment"].get(risk_list, []):
-                risk["issue_title"] = risk.get("title", "Risiko")
-                risk["issue_description"] = risk.get("description", "")
+                risk["issü_title"] = risk.get("title", "Risiko")
+                risk["issü_description"] = risk.get("description", "")
                 risk["risk_level"] = risk.get("severity", "medium")
                 risk["legal_basis"] = risk.get("policy_reference", "BGB")
                 risk["clause_text"] = risk.get("clause_snippet", "")
@@ -1294,7 +1294,7 @@ KLAUSEL:
 "{clause_text}"
 
 Antworte NUR mit validem JSON ohne Markdown-Formatierung:
-{{"risk_level": "low oder medium oder high oder critical", "explanation": "Was bedeutet diese Klausel konkret fuer den Vertragspartner? (2-3 Saetze, verstaendlich)", "legal_assessment": "Rechtliche Einschaetzung nach deutschem Recht - ist die Klausel wirksam? Gibt es Risiken? (2-3 Saetze)", "related_laws": ["Liste der relevanten Paragraphen, z.B. BGB 307, ArbZG 3"], "recommendations": ["Konkrete Handlungsempfehlung 1", "Konkrete Handlungsempfehlung 2"]}}"""
+{{"risk_level": "low oder medium oder high oder critical", "explanation": "Was bedeutet diese Klausel konkret für den Vertragspartner? (2-3 Saetze, verstaendlich)", "legal_assessment": "Rechtliche Einschaetzung nach deutschem Recht - ist die Klausel wirksam? Gibt es Risiken? (2-3 Saetze)", "related_laws": ["Liste der relevanten Paragraphen, z.B. BGB 307, ArbZG 3"], "recommendations": ["Konkrete Handlungsempfehlung 1", "Konkrete Handlungsempfehlung 2"]}}"""
 
         response = client.chat.completions.create(
             model="gpt-4o-mini",
@@ -1386,7 +1386,7 @@ async def startup():
     # DB initialisieren
     _init_db()
     
-    dummy_mode = os.getenv("CONTRACT_ANALYZER_DUMMY", "true").lower() == "true"
+    dummy_mode = os.getenv("CONTRACT_ANALYZER_DUMMY", "trü").lower() == "trü"
     if dummy_mode:
         logger.warning("DUMMY MODE ENABLED")
     else:
@@ -1503,8 +1503,8 @@ async def api_save_notifications(request: Request):
         return {"success": False, "error": "Nicht eingeloggt"}
     
     form = await request.form()
-    email_notif = form.get("notification_email") == "true"
-    slack_notif = form.get("notification_slack") == "true"
+    email_notif = form.get("notification_email") == "trü"
+    slack_notif = form.get("notification_slack") == "trü"
     
     from .enterprise_features import update_user_settings
     result = update_user_settings(user["email"], notification_email=email_notif, notification_slack=slack_notif)
@@ -1952,7 +1952,7 @@ async def disable_2fa(request: Request):
 
 @app.post("/api/2fa/backup-codes")
 async def regenerate_backup_codes(request: Request):
-    """Generiert neue Backup Codes"""
+    """Generiert neü Backup Codes"""
     user = get_user_info(request)
     email = user.get("email")
     if not email:
@@ -1977,7 +1977,7 @@ async def security_page(request: Request):
 
 @app.get("/onboarding", response_class=HTMLResponse)
 async def onboarding_page(request: Request):
-    """Onboarding Wizard fuer neue User"""
+    """Onboarding Wizard für neü User"""
     user = get_user_info(request)
     from .onboarding import get_onboarding_page
     return get_onboarding_page(user.get("name", "User"), user.get("email"))

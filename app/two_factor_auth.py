@@ -139,7 +139,7 @@ def verify_totp(user_email: str, code: str, ip_address: str = None) -> Dict:
     
     conn.close()
     log_attempt(user_email, False, ip_address)
-    return {"success": False, "error": "Ungueltiger Code"}
+    return {"success": False, "error": "Ungültiger Code"}
 
 def enable_2fa(user_email: str, code: str) -> Dict:
     """Aktiviert 2FA nach Verifikation"""
@@ -157,7 +157,7 @@ def enable_2fa(user_email: str, code: str) -> Dict:
     totp = pyotp.TOTP(secret)
     
     if not totp.verify(code, valid_window=1):
-        return {"success": False, "error": "Ungueltiger Code"}
+        return {"success": False, "error": "Ungültiger Code"}
     
     # Generiere Backup Codes
     backup_codes = generate_backup_codes()
@@ -235,7 +235,7 @@ def generate_backup_codes(count: int = 8) -> List[str]:
     return codes
 
 def regenerate_backup_codes(user_email: str, code: str) -> Dict:
-    """Generiert neue Backup Codes"""
+    """Generiert neü Backup Codes"""
     verify = verify_totp(user_email, code)
     if not verify["success"]:
         return verify

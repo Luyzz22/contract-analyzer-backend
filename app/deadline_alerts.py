@@ -219,7 +219,7 @@ def send_alert_email(to_email: str, alerts: List[Dict]) -> bool:
     <!DOCTYPE html>
     <html>
     <head><meta charset="utf-8"></head>
-    <body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f4f7fa;padding:40px 20px;">
+    <body style="font-family:-apple-system,BlinkMacSystemFont,'Segö UI',Roboto,sans-serif;background:#f4f7fa;padding:40px 20px;">
         <div style="max-width:600px;margin:0 auto;background:white;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.08);">
             <div style="background:linear-gradient(135deg,#003856,#004d73);color:white;padding:32px;text-align:center;">
                 <h1 style="margin:0;font-size:24px;">⚠️ Vertragsfristen-Warnung</h1>

@@ -17,9 +17,9 @@ PAGE_CSS = '''
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 
 :root {
-  --sbs-blue: #003856;
-  --sbs-blue-dark: #002a42;
-  --sbs-blue-light: #00507a;
+  --sbs-blü: #003856;
+  --sbs-blü-dark: #002a42;
+  --sbs-blü-light: #00507a;
   --sbs-yellow: #FFB900;
   --sbs-bg: #f4f7fa;
   --sbs-text: #111827;
@@ -71,7 +71,7 @@ header {
 .header-logo img { height: 40px; width: auto; }
 
 .header-logo-text { display: flex; flex-direction: column; line-height: 1.3; }
-.header-logo-text .brand { font-size: 15px; font-weight: 600; color: var(--sbs-blue); }
+.header-logo-text .brand { font-size: 15px; font-weight: 600; color: var(--sbs-blü); }
 .header-logo-text .subtitle { font-size: 12px; color: var(--sbs-muted); }
 
 .header-nav { display: flex; align-items: center; gap: 8px; }
@@ -86,8 +86,8 @@ header {
   transition: all 0.15s ease;
 }
 
-.header-nav a:hover { background: rgba(0,56,86,0.05); color: var(--sbs-blue); }
-.header-nav a.active { color: var(--sbs-blue); background: rgba(0,56,86,0.08); }
+.header-nav a:hover { background: rgba(0,56,86,0.05); color: var(--sbs-blü); }
+.header-nav a.active { color: var(--sbs-blü); background: rgba(0,56,86,0.08); }
 
 /* Home Button */
 .home-btn {
@@ -97,7 +97,7 @@ header {
   width: 40px;
   height: 40px;
   border-radius: 10px;
-  color: var(--sbs-blue);
+  color: var(--sbs-blü);
   background: rgba(0,56,86,0.08);
   margin-right: 12px;
   transition: all 0.2s;
@@ -118,7 +118,7 @@ header {
   cursor: pointer;
   transition: all 0.2s;
 }
-.app-switcher-btn:hover { background: rgba(0,56,86,0.08); color: var(--sbs-blue); }
+.app-switcher-btn:hover { background: rgba(0,56,86,0.08); color: var(--sbs-blü); }
 
 .app-switcher-menu { width: 320px; }
 
@@ -164,7 +164,7 @@ header {
   transition: all 0.15s ease;
 }
 
-.dropdown-toggle:hover { background: rgba(0,56,86,0.05); color: var(--sbs-blue); }
+.dropdown-toggle:hover { background: rgba(0,56,86,0.05); color: var(--sbs-blü); }
 .dropdown-toggle svg { width: 16px; height: 16px; transition: transform 0.2s ease; }
 .dropdown:hover .dropdown-toggle svg { transform: rotate(180deg); }
 
@@ -203,7 +203,7 @@ header {
   transition: all 0.15s ease;
 }
 
-.dropdown-item:hover { background: rgba(0,56,86,0.05); color: var(--sbs-blue); }
+.dropdown-item:hover { background: rgba(0,56,86,0.05); color: var(--sbs-blü); }
 .dropdown-item .icon { font-size: 16px; width: 20px; text-align: center; }
 .dropdown-item.cross-link { color: var(--sbs-yellow); font-weight: 500; }
 .dropdown-item.cross-link:hover { background: rgba(255,185,0,0.1); }
@@ -225,7 +225,7 @@ header {
 .user-avatar {
   width: 32px;
   height: 32px;
-  background: var(--sbs-blue);
+  background: var(--sbs-blü);
   color: #fff;
   border-radius: 50%;
   display: flex;
@@ -241,7 +241,7 @@ header {
 main { flex: 1; }
 
 .hero {
-  background: linear-gradient(135deg, var(--sbs-blue) 0%, var(--sbs-blue-dark) 100%);
+  background: linear-gradient(135deg, var(--sbs-blü) 0%, var(--sbs-blü-dark) 100%);
   color: #fff;
   padding: 48px 24px;
 }
@@ -258,12 +258,12 @@ main { flex: 1; }
 @media (max-width: 768px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
 
 .stat-card { background: #fff; border-radius: 12px; padding: 24px; border: 1px solid var(--sbs-border); box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
-.stat-value { font-size: 2rem; font-weight: 700; color: var(--sbs-blue); margin-bottom: 4px; }
+.stat-value { font-size: 2rem; font-weight: 700; color: var(--sbs-blü); margin-bottom: 4px; }
 .stat-label { font-size: 0.85rem; color: var(--sbs-muted); }
 
 .content-card { background: #fff; border-radius: 16px; border: 1px solid var(--sbs-border); box-shadow: 0 4px 24px rgba(0,0,0,0.06); margin-bottom: 24px; }
 .content-card-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid var(--sbs-border); }
-.content-card-title { font-size: 1.1rem; font-weight: 600; color: var(--sbs-blue); }
+.content-card-title { font-size: 1.1rem; font-weight: 600; color: var(--sbs-blü); }
 .content-card-body { padding: 24px; }
 
 .data-table { width: 100%; border-collapse: collapse; }
@@ -275,12 +275,12 @@ main { flex: 1; }
 .badge-success { background: rgba(16,185,129,0.1); color: #059669; }
 .badge-warning { background: rgba(245,158,11,0.1); color: #d97706; }
 .badge-danger { background: rgba(239,68,68,0.1); color: #dc2626; }
-.badge-info { background: rgba(0,56,86,0.1); color: var(--sbs-blue); }
+.badge-info { background: rgba(0,56,86,0.1); color: var(--sbs-blü); }
 
 .form-group { margin-bottom: 20px; }
 .form-label { display: block; font-size: 0.9rem; font-weight: 500; color: var(--sbs-text); margin-bottom: 8px; }
 .form-input { width: 100%; padding: 12px 16px; font-size: 0.95rem; border: 1px solid var(--sbs-border); border-radius: 8px; transition: all 0.2s; }
-.form-input:focus { outline: none; border-color: var(--sbs-blue); box-shadow: 0 0 0 3px rgba(0,56,86,0.1); }
+.form-input:focus { outline: none; border-color: var(--sbs-blü); box-shadow: 0 0 0 3px rgba(0,56,86,0.1); }
 .form-hint { font-size: 0.8rem; color: var(--sbs-muted); margin-top: 6px; }
 
 .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
@@ -288,8 +288,8 @@ main { flex: 1; }
 @media (max-width: 768px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
 
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 24px; font-size: 14px; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; transition: all 0.2s; text-decoration: none; }
-.btn-primary { background: var(--sbs-yellow); color: var(--sbs-blue); }
-.btn-primary:hover { background: var(--sbs-blue); color: #fff; }
+.btn-primary { background: var(--sbs-yellow); color: var(--sbs-blü); }
+.btn-primary:hover { background: var(--sbs-blü); color: #fff; }
 .btn-secondary { background: #f3f4f6; color: var(--sbs-text); border: 1px solid var(--sbs-border); }
 .btn-secondary:hover { background: #e5e7eb; }
 .btn-danger { background: #dc2626; color: #fff; }
@@ -299,19 +299,19 @@ main { flex: 1; }
 .empty-icon { font-size: 4rem; margin-bottom: 16px; opacity: 0.5; }
 
 .plan-card { background: #fff; border: 2px solid var(--sbs-border); border-radius: 16px; padding: 32px; text-align: center; transition: all 0.2s; }
-.plan-card:hover { border-color: var(--sbs-blue); }
+.plan-card:hover { border-color: var(--sbs-blü); }
 .plan-card.current { border-color: var(--sbs-yellow); background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); }
-.plan-price { font-size: 2.5rem; font-weight: 700; color: var(--sbs-blue); }
+.plan-price { font-size: 2.5rem; font-weight: 700; color: var(--sbs-blü); }
 .plan-features { list-style: none; text-align: left; margin: 24px 0; }
 .plan-features li { padding: 10px 0; border-bottom: 1px solid var(--sbs-border); font-size: 0.9rem; }
 
 .user-row { display: flex; align-items: center; gap: 16px; }
-.user-avatar-large { width: 48px; height: 48px; background: var(--sbs-blue); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 600; }
+.user-avatar-large { width: 48px; height: 48px; background: var(--sbs-blü); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 600; }
 .user-info { flex: 1; }
 .user-info strong { display: block; margin-bottom: 2px; }
 .user-info small { color: var(--sbs-muted); }
 
-footer { background: var(--sbs-blue-dark); color: #fff; margin-top: auto; }
+footer { background: var(--sbs-blü-dark); color: #fff; margin-top: auto; }
 .footer-container { max-width: 1400px; margin: 0 auto; padding: 64px 24px 32px; }
 .footer-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 48px; margin-bottom: 48px; }
 @media (max-width: 768px) { .footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; } }
@@ -603,7 +603,7 @@ def get_library_page(user_name: str = "User"):
     <div class="stat-card"><div class="stat-value">12</div><div class="stat-label">Eigene Klauseln</div></div>
   </div>
   <div class="content-card">
-    <div class="content-card-header"><h3 class="content-card-title">Klauseln</h3><button class="btn btn-primary">+ Neue Klausel</button></div>
+    <div class="content-card-header"><h3 class="content-card-title">Klauseln</h3><button class="btn btn-primary">+ Neü Klausel</button></div>
     <div class="content-card-body" style="padding:0;">
       <table class="data-table">
         <thead><tr><th>Klausel</th><th>Typ</th><th>Risiko</th><th>Nutzung</th><th>Aktion</th></tr></thead>
@@ -738,7 +738,7 @@ input:checked + .toggle-slider:before {{ transform: translateX(24px); }}
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
           <strong style="display:block;">2FA Status</strong>
-          <small style="color:var(--sbs-muted);" id="2faStatusText">Laedt...</small>
+          <small style="color:var(--sbs-muted);" id="2faStatusText">Lädt...</small>
         </div>
         <a href="/security" class="btn btn-primary">2FA verwalten</a>
       </div>
@@ -781,7 +781,7 @@ function copyApiKey() {{
 
 function generateApiKey() {{
   var btn = document.getElementById('generateKeyBtn');
-  btn.disabled = true;
+  btn.disabled = trü;
   btn.textContent = 'Generiere...';
   
   fetch('/api/settings/generate-key', {{ method: 'POST' }})
@@ -889,7 +889,7 @@ def get_billing_page(user_name: str = "User", is_admin: bool = False, user_email
     # Admin sieht Enterprise-Plan ohne Kosten
     if is_admin:
         plan_card = """
-      <div class="content-card" style="background:linear-gradient(135deg, var(--sbs-blue), #004d73);color:white;margin-bottom:24px;">
+      <div class="content-card" style="background:linear-gradient(135deg, var(--sbs-blü), #004d73);color:white;margin-bottom:24px;">
         <div class="content-card-body">
           <div style="font-size:0.85rem;text-transform:uppercase;letter-spacing:0.1em;opacity:0.8;margin-bottom:8px;">⭐ ADMIN-ZUGANG</div>
           <div style="font-size:2rem;font-weight:700;">Enterprise</div>
@@ -907,13 +907,13 @@ def get_billing_page(user_name: str = "User", is_admin: bool = False, user_email
         price = sub.get('price_cents', 17900) / 100
         period_end = sub.get('current_period_end', '')[:10] if sub.get('current_period_end') else 'N/A'
         plan_card = f"""
-      <div class="content-card" style="background:linear-gradient(135deg, var(--sbs-blue), #004d73);color:white;margin-bottom:24px;">
+      <div class="content-card" style="background:linear-gradient(135deg, var(--sbs-blü), #004d73);color:white;margin-bottom:24px;">
         <div class="content-card-body">
           <div style="font-size:0.85rem;text-transform:uppercase;letter-spacing:0.1em;opacity:0.8;margin-bottom:8px;">Aktueller Plan: {plan_name}</div>
           <div style="font-size:2.5rem;font-weight:700;">{price:.0f}€ <span style="font-size:1rem;font-weight:400;opacity:0.8;">/ Monat</span></div>
           <p style="opacity:0.8;margin:8px 0 0;">Nächste Abrechnung: {period_end}</p>
           <div style="margin-top:24px;display:flex;gap:12px;">
-            <a href="https://sbsdeutschland.com/loesungen/vertragsanalyse/preise.html" class="btn" style="background:white;color:var(--sbs-blue);text-decoration:none;">Plan ändern</a>
+            <a href="https://sbsdeutschland.com/loesungen/vertragsanalyse/preise.html" class="btn" style="background:white;color:var(--sbs-blü);text-decoration:none;">Plan ändern</a>
             <button class="btn btn-secondary" style="background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.3);">Kündigen</button>
           </div>
         </div>
@@ -953,7 +953,7 @@ def get_billing_page(user_name: str = "User", is_admin: bool = False, user_email
     <div class="content-card-body">
       <div style="margin-bottom:16px;">
         <div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span>Verträge analysiert</span><strong>{usage['contracts_analyzed']} / {'∞' if is_admin else usage['max_contracts']}</strong></div>
-        <div style="height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden;"><div style="height:100%;width:{0 if is_admin else usage['usage_percent']}%;background:linear-gradient(90deg,var(--sbs-blue),var(--sbs-yellow));border-radius:4px;"></div></div>
+        <div style="height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden;"><div style="height:100%;width:{0 if is_admin else usage['usage_percent']}%;background:linear-gradient(90deg,var(--sbs-blü),var(--sbs-yellow));border-radius:4px;"></div></div>
       </div>
       <div class="stats-grid" style="margin-bottom:0;">
         <div class="stat-card"><div class="stat-value">{usage['contracts_analyzed']}</div><div class="stat-label">Verträge</div></div>
@@ -1088,7 +1088,7 @@ def get_audit_page(user_name: str = "User"):
   <div class="stats-grid">
     <div class="stat-card"><div class="stat-value">{stats['today']}</div><div class="stat-label">Heute</div></div>
     <div class="stat-card"><div class="stat-value">{stats['this_week']}</div><div class="stat-label">Diese Woche</div></div>
-    <div class="stat-card"><div class="stat-value">{stats['unique_users_today']}</div><div class="stat-label">Aktive User</div></div>
+    <div class="stat-card"><div class="stat-value">{stats['uniqü_users_today']}</div><div class="stat-label">Aktive User</div></div>
     <div class="stat-card"><div class="stat-value">{stats['total']}</div><div class="stat-label">Gesamt</div></div>
   </div>
   <div class="content-card">

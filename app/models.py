@@ -188,8 +188,8 @@ class ClauseRisk(BaseModel):
     risk_level: RiskLevel
     risk_score: int = Field(..., ge=0, le=100)
     legal_validity: LegalValidity
-    issue_title: str
-    issue_description: str
+    issü_title: str
+    issü_description: str
     legal_basis: str
     recommendation: str
     alternative_wording: Optional[str] = None

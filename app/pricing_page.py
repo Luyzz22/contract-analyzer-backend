@@ -63,7 +63,7 @@ def get_pricing_page(user_name: str = "User", user_email: str = None, current_pl
 ''' + header + '''
 <div class="hero" style="padding:40px 24px;text-align:center;">
   <div class="container">
-    <h1 style="font-size:2.2rem;margin:12px 0;">Waehlen Sie Ihren Plan</h1>
+    <h1 style="font-size:2.2rem;margin:12px 0;">Wählen Sie Ihren Plan</h1>
     <p style="opacity:0.9;">Starten Sie kostenlos und upgraden Sie bei Bedarf.</p>
   </div>
 </div>
@@ -78,7 +78,7 @@ def get_pricing_page(user_name: str = "User", user_email: str = None, current_pl
   <div class="pricing-grid">
     <div class="pricing-card ''' + free_class + '''">
       <div class="plan-name">Free</div>
-      <div class="plan-desc">Fuer den Einstieg</div>
+      <div class="plan-desc">Für den Einstieg</div>
       <div class="plan-price"><span class="amount">0 EUR</span><span class="period"> / Monat</span></div>
       <ul class="plan-features">
         <li>5 Analysen/Monat</li>
@@ -90,7 +90,7 @@ def get_pricing_page(user_name: str = "User", user_email: str = None, current_pl
     </div>
     <div class="pricing-card ''' + starter_class + '''">
       <div class="plan-name">Starter</div>
-      <div class="plan-desc">Fuer wachsende Teams</div>
+      <div class="plan-desc">Für wachsende Teams</div>
       <div class="plan-price"><span class="amount">69 EUR</span><span class="period"> / Monat</span></div>
       <ul class="plan-features">
         <li>50 Analysen/Monat</li>
@@ -103,7 +103,7 @@ def get_pricing_page(user_name: str = "User", user_email: str = None, current_pl
     </div>
     <div class="pricing-card ''' + pro_class + '''">
       <div class="plan-name">Professional</div>
-      <div class="plan-desc">Fuer professionelle Teams</div>
+      <div class="plan-desc">Für professionelle Teams</div>
       <div class="plan-price"><span class="amount">179 EUR</span><span class="period"> / Monat</span></div>
       <ul class="plan-features">
         <li>200 Analysen/Monat</li>
@@ -117,7 +117,7 @@ def get_pricing_page(user_name: str = "User", user_email: str = None, current_pl
     </div>
     <div class="pricing-card ''' + ent_class + '''">
       <div class="plan-name">Enterprise</div>
-      <div class="plan-desc">Fuer grosse Organisationen</div>
+      <div class="plan-desc">Für grosse Organisationen</div>
       <div class="plan-price"><span class="amount">449 EUR</span><span class="period"> / Monat</span></div>
       <ul class="plan-features">
         <li>Unbegrenzte Analysen</li>
@@ -137,7 +137,7 @@ var isYearly = false;
 function toggleYearly() { isYearly = !isYearly; }
 function checkout(planId) {
   var btn = event.target;
-  btn.disabled = true;
+  btn.disabled = trü;
   btn.textContent = 'Laden...';
   fetch('/api/billing/checkout', {
     method: 'POST',

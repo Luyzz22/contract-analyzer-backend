@@ -52,8 +52,8 @@ class RiskScoringEngine:
                 risk_level=RiskLevel.CRITICAL,
                 risk_score=95,
                 legal_validity=LegalValidity.INVALID,
-                issue_title="Probezeit überschreitet 6 Monate",
-                issue_description="Maximum nach § 622 Abs. 3 BGB sind 6 Monate.",
+                issü_title="Probezeit überschreitet 6 Monate",
+                issü_description="Maximum nach § 622 Abs. 3 BGB sind 6 Monate.",
                 legal_basis="§ 622 Abs. 3 BGB",
                 recommendation="Probezeit auf max. 6 Monate reduzieren.",
             ))
@@ -67,8 +67,8 @@ class RiskScoringEngine:
                     risk_level=RiskLevel.CRITICAL,
                     risk_score=85,
                     legal_validity=LegalValidity.POTENTIALLY_INVALID,
-                    issue_title="Intransparente Überstundenabgeltung",
-                    issue_description="Pauschale Abgeltung ohne Stundenbegrenzung ist nach BAG unwirksam.",
+                    issü_title="Intransparente Überstundenabgeltung",
+                    issü_description="Pauschale Abgeltung ohne Stundenbegrenzung ist nach BAG unwirksam.",
                     legal_basis="BAG 5 AZR 765/10; § 307 BGB",
                     recommendation="Klare Begrenzung festlegen (z.B. bis zu 10 Überstunden/Monat).",
                 ))
@@ -82,8 +82,8 @@ class RiskScoringEngine:
                     risk_level=RiskLevel.CRITICAL,
                     risk_score=100,
                     legal_validity=LegalValidity.INVALID,
-                    issue_title="Wettbewerbsverbot ohne Karenzentschädigung",
-                    issue_description="Ohne min. 50% Karenz ist das Verbot NICHTIG.",
+                    issü_title="Wettbewerbsverbot ohne Karenzentschädigung",
+                    issü_description="Ohne min. 50% Karenz ist das Verbot NICHTIG.",
                     legal_basis="§ 74 Abs. 2 HGB",
                     recommendation="Karenzentschädigung von min. 50% vereinbaren oder streichen.",
                 ))
@@ -96,8 +96,8 @@ class RiskScoringEngine:
                 risk_level=RiskLevel.CRITICAL,
                 risk_score=80,
                 legal_validity=LegalValidity.INVALID,
-                issue_title="Urlaub unter gesetzlichem Minimum",
-                issue_description="Minimum nach § 3 BUrlG sind 20 Werktage.",
+                issü_title="Urlaub unter gesetzlichem Minimum",
+                issü_description="Minimum nach § 3 BUrlG sind 20 Werktage.",
                 legal_basis="§ 3 BUrlG",
                 recommendation="Urlaubsanspruch auf min. 20 Tage erhöhen.",
             ))
@@ -176,8 +176,8 @@ class SaaSRiskScoringEngine:
                     risk_level=RiskLevel.CRITICAL,
                     risk_score=90,
                     legal_validity=LegalValidity.VALID,
-                    issue_title="Kurze Kündigungsfrist bei Auto-Renewal",
-                    issue_description=f"Die Kündigungsfrist von {notice} Tagen vor automatischer Verlängerung ist sehr kurz. Risiko einer ungewollten Vertragsverlängerung.",
+                    issü_title="Kurze Kündigungsfrist bei Auto-Renewal",
+                    issü_description=f"Die Kündigungsfrist von {notice} Tagen vor automatischer Verlängerung ist sehr kurz. Risiko einer ungewollten Vertragsverlängerung.",
                     legal_basis="§ 309 Nr. 9 BGB (AGB-Kontrolle)",
                     recommendation="Kündigungsfrist auf mindestens 30, besser 90 Tage erhöhen oder automatische Verlängerung streichen.",
                 ))
@@ -192,8 +192,8 @@ class SaaSRiskScoringEngine:
                 risk_level=RiskLevel.CRITICAL,
                 risk_score=95,
                 legal_validity=LegalValidity.INVALID,
-                issue_title="Fehlender Auftragsverarbeitungsvertrag",
-                issue_description="Kein AVV (Auftragsverarbeitungsvertrag) nach Art. 28 DSGVO vorhanden. Dies ist bei Verarbeitung personenbezogener Daten gesetzlich vorgeschrieben.",
+                issü_title="Fehlender Auftragsverarbeitungsvertrag",
+                issü_description="Kein AVV (Auftragsverarbeitungsvertrag) nach Art. 28 DSGVO vorhanden. Dies ist bei Verarbeitung personenbezogener Daten gesetzlich vorgeschrieben.",
                 legal_basis="Art. 28 DSGVO",
                 recommendation="AVV nach Art. 28 DSGVO abschließen. Ohne AVV ist die Nutzung des Services für personenbezogene Daten rechtswidrig.",
             ))
@@ -209,8 +209,8 @@ class SaaSRiskScoringEngine:
                 risk_level=RiskLevel.HIGH,
                 risk_score=75,
                 legal_validity=LegalValidity.REQUIRES_REVIEW,
-                issue_title="Datenspeicherung außerhalb EU",
-                issue_description=f"Daten werden in {dp.get('data_location')} gespeichert. Für Übermittlung außerhalb der EU sind zusätzliche Garantien (Standardvertragsklauseln) erforderlich.",
+                issü_title="Datenspeicherung außerhalb EU",
+                issü_description=f"Daten werden in {dp.get('data_location')} gespeichert. Für Übermittlung außerhalb der EU sind zusätzliche Garantien (Standardvertragsklauseln) erforderlich.",
                 legal_basis="Art. 44-49 DSGVO (Drittlandübermittlung)",
                 recommendation="Standardvertragsklauseln (SCC) vereinbaren oder EU-Datenspeicherung vertraglich garantieren lassen.",
             ))
@@ -226,8 +226,8 @@ class SaaSRiskScoringEngine:
                 risk_level=RiskLevel.MEDIUM,
                 risk_score=50,
                 legal_validity=LegalValidity.VALID,
-                issue_title="Niedrige SLA-Garantie",
-                issue_description=f"Die garantierte Verfügbarkeit von {uptime}% liegt unter dem Marktstandard von 99.9%. Dies entspricht bis zu {round((100-uptime)*365*24/100, 1)} Stunden Ausfall pro Jahr.",
+                issü_title="Niedrige SLA-Garantie",
+                issü_description=f"Die garantierte Verfügbarkeit von {uptime}% liegt unter dem Marktstandard von 99.9%. Dies entspricht bis zu {round((100-uptime)*365*24/100, 1)} Stunden Ausfall pro Jahr.",
                 legal_basis="Vertragsrecht",
                 recommendation="SLA auf mindestens 99.9% Verfügbarkeit verhandeln, inklusive Service Credits bei Nichteinhaltung.",
             ))
@@ -246,8 +246,8 @@ class SaaSRiskScoringEngine:
                 risk_level=RiskLevel.HIGH,
                 risk_score=65,
                 legal_validity=LegalValidity.VALID,
-                issue_title="Niedrige Haftungsobergrenze",
-                issue_description=f"Die Haftung ist auf {cap_multiple}x die Jahresgebühr begrenzt. Bei kritischen Systemen kann der Schaden deutlich höher sein.",
+                issü_title="Niedrige Haftungsobergrenze",
+                issü_description=f"Die Haftung ist auf {cap_multiple}x die Jahresgebühr begrenzt. Bei kritischen Systemen kann der Schaden deutlich höher sein.",
                 legal_basis="§ 309 Nr. 7 BGB",
                 recommendation="Haftungscap auf mindestens 12x Jahresgebühr erhöhen oder Versicherungsnachweis verlangen.",
             ))
@@ -262,8 +262,8 @@ class SaaSRiskScoringEngine:
                 risk_level=RiskLevel.HIGH,
                 risk_score=70,
                 legal_validity=LegalValidity.VALID,
-                issue_title="Vendor Lock-in durch fehlenden Datenexport",
-                issue_description="Kein Format für Datenexport bei Vertragsende vereinbart. Dies erschwert einen Anbieterwechsel erheblich.",
+                issü_title="Vendor Lock-in durch fehlenden Datenexport",
+                issü_description="Kein Format für Datenexport bei Vertragsende vereinbart. Dies erschwert einen Anbieterwechsel erheblich.",
                 legal_basis="Art. 20 DSGVO (Datenportabilität)",
                 recommendation="Datenexport in standardisiertem Format (CSV, JSON, XML) vertraglich vereinbaren.",
             ))
@@ -278,8 +278,8 @@ class SaaSRiskScoringEngine:
                 risk_level=RiskLevel.HIGH,
                 risk_score=65,
                 legal_validity=LegalValidity.VALID,
-                issue_title="Unbegrenzte Preisanpassung",
-                issue_description="Der Anbieter kann Preise anpassen ohne festgelegte Obergrenze. Risiko erheblicher Kostensteigerungen.",
+                issü_title="Unbegrenzte Preisanpassung",
+                issü_description="Der Anbieter kann Preise anpassen ohne festgelegte Obergrenze. Risiko erheblicher Kostensteigerungen.",
                 legal_basis="§ 307 BGB (Transparenzgebot)",
                 recommendation="Preisanpassung auf max. 5% p.a. oder Inflationsindex begrenzen. Sonderkündigungsrecht bei Preiserhöhung vereinbaren.",
             ))
@@ -355,8 +355,8 @@ class NDARiskScoringEngine:
                 risk_level=RiskLevel.CRITICAL,
                 risk_score=85,
                 legal_validity=LegalValidity.REQUIRES_REVIEW,
-                issue_title="Unbefristete Geheimhaltung",
-                issue_description="Die Geheimhaltungspflicht ist zeitlich unbegrenzt. Dies ist unüblich und kann unverhältnismäßig sein. Marktstandard sind 3-5 Jahre.",
+                issü_title="Unbefristete Geheimhaltung",
+                issü_description="Die Geheimhaltungspflicht ist zeitlich unbegrenzt. Dies ist unüblich und kann unverhältnismäßig sein. Marktstandard sind 3-5 Jahre.",
                 legal_basis="§ 307 BGB (Angemessenheit)",
                 recommendation="Geheimhaltungspflicht auf 3-5 Jahre nach Vertragsende begrenzen.",
             ))
@@ -369,8 +369,8 @@ class NDARiskScoringEngine:
                 risk_level=RiskLevel.HIGH,
                 risk_score=65,
                 legal_validity=LegalValidity.VALID,
-                issue_title="Überlange Geheimhaltungsfrist",
-                issue_description=f"Die Geheimhaltungspflicht von {duration} Jahren ist ungewöhnlich lang. Marktstandard sind 3-5 Jahre.",
+                issü_title="Überlange Geheimhaltungsfrist",
+                issü_description=f"Die Geheimhaltungspflicht von {duration} Jahren ist ungewöhnlich lang. Marktstandard sind 3-5 Jahre.",
                 legal_basis="Marktüblichkeit",
                 recommendation="Kürzere Laufzeit von max. 5 Jahren verhandeln.",
             ))
@@ -385,8 +385,8 @@ class NDARiskScoringEngine:
                 risk_level=RiskLevel.HIGH,
                 risk_score=60,
                 legal_validity=LegalValidity.REQUIRES_REVIEW,
-                issue_title="Zu weite Definition vertraulicher Informationen",
-                issue_description="Die Definition 'alle Informationen' ist sehr weit gefasst und könnte auch triviale Informationen umfassen.",
+                issü_title="Zu weite Definition vertraulicher Informationen",
+                issü_description="Die Definition 'alle Informationen' ist sehr weit gefasst und könnte auch triviale Informationen umfassen.",
                 legal_basis="§ 307 BGB (Transparenzgebot)",
                 recommendation="Definition präzisieren: nur markierte oder ausdrücklich als vertraulich bezeichnete Informationen.",
             ))
@@ -402,8 +402,8 @@ class NDARiskScoringEngine:
                 risk_level=RiskLevel.HIGH if per_violation else RiskLevel.MEDIUM,
                 risk_score=70 if per_violation else 50,
                 legal_validity=LegalValidity.REQUIRES_REVIEW,
-                issue_title="Hohe Vertragsstrafe",
-                issue_description=f"Die Vertragsstrafe von {penalty:,.0f} EUR ist erheblich{' und gilt pro Verstoß' if per_violation else ''}.",
+                issü_title="Hohe Vertragsstrafe",
+                issü_description=f"Die Vertragsstrafe von {penalty:,.0f} EUR ist erheblich{' und gilt pro Verstoß' if per_violation else ''}.",
                 legal_basis="§ 343 BGB (Herabsetzung)",
                 recommendation="Vertragsstrafe auf angemessenes Maß reduzieren oder Obergrenze vereinbaren.",
             ))
@@ -420,8 +420,8 @@ class NDARiskScoringEngine:
                 risk_level=RiskLevel.MEDIUM,
                 risk_score=45,
                 legal_validity=LegalValidity.VALID,
-                issue_title="Fehlende Standardausnahmen",
-                issue_description="Das NDA enthält keine üblichen Ausnahmen für öffentlich bekannte oder rechtmäßig erhaltene Informationen.",
+                issü_title="Fehlende Standardausnahmen",
+                issü_description="Das NDA enthält keine üblichen Ausnahmen für öffentlich bekannte oder rechtmäßig erhaltene Informationen.",
                 legal_basis="Marktüblichkeit",
                 recommendation="Standardausnahmen aufnehmen: öffentlich bekannt, rechtmäßig von Dritten, eigenständig entwickelt, behördliche Offenlegung.",
             ))
@@ -451,7 +451,7 @@ class NDARiskScoringEngine:
 
 
 class VendorRiskScoringEngine:
-    """Risk Scoring Engine fuer Lieferantenvertraege"""
+    """Risk Scoring Engine für Lieferantenvertraege"""
     
     def __init__(self):
         self.risks: List[ClauseRisk] = []
@@ -505,8 +505,8 @@ class VendorRiskScoringEngine:
                 risk_level=RiskLevel.CRITICAL,
                 risk_score=90,
                 legal_validity=LegalValidity.REQUIRES_REVIEW,
-                issue_title="Fehlende Gewaehrleistung",
-                issue_description="Der Vertrag enthaelt keine explizite Gewaehrleistungsregelung. Es gelten die gesetzlichen Regelungen (24 Monate), aber dies sollte vertraglich klargestellt werden.",
+                issü_title="Fehlende Gewaehrleistung",
+                issü_description="Der Vertrag enthaelt keine explizite Gewaehrleistungsregelung. Es gelten die gesetzlichen Regelungen (24 Monate), aber dies sollte vertraglich klargestellt werden.",
                 legal_basis="§§ 434 ff. BGB",
                 recommendation="Gewaehrleistungsfrist von mindestens 24 Monaten vertraglich vereinbaren.",
             ))
@@ -517,8 +517,8 @@ class VendorRiskScoringEngine:
                 risk_level=RiskLevel.CRITICAL,
                 risk_score=85,
                 legal_validity=LegalValidity.REQUIRES_REVIEW,
-                issue_title="Zu kurze Gewaehrleistungsfrist",
-                issue_description=f"Die Gewaehrleistungsfrist von {months} Monaten ist sehr kurz. Gesetzlich sind 24 Monate vorgesehen.",
+                issü_title="Zu kurze Gewaehrleistungsfrist",
+                issü_description=f"Die Gewaehrleistungsfrist von {months} Monaten ist sehr kurz. Gesetzlich sind 24 Monate vorgesehen.",
                 legal_basis="§ 438 BGB",
                 recommendation="Gewaehrleistungsfrist auf mindestens 24 Monate erhoehen.",
             ))
@@ -535,8 +535,8 @@ class VendorRiskScoringEngine:
                 risk_level=RiskLevel.CRITICAL,
                 risk_score=95,
                 legal_validity=LegalValidity.INVALID,
-                issue_title="Vollstaendiger Haftungsausschluss",
-                issue_description="Ein vollstaendiger Haftungsausschluss ist in AGB unwirksam und auch individualvertraglich problematisch.",
+                issü_title="Vollstaendiger Haftungsausschluss",
+                issü_description="Ein vollstaendiger Haftungsausschluss ist in AGB unwirksam und auch individualvertraglich problematisch.",
                 legal_basis="§ 309 Nr. 7 BGB",
                 recommendation="Angemessene Haftungsregelung mit verhaeltnismaessigem Cap vereinbaren.",
             ))
@@ -553,8 +553,8 @@ class VendorRiskScoringEngine:
                 risk_level=RiskLevel.MEDIUM,
                 risk_score=45,
                 legal_validity=LegalValidity.VALID,
-                issue_title="Kurzes Zahlungsziel",
-                issue_description=f"Das Zahlungsziel von {days} Tagen ist kurz und kann Liquiditaetsdruck erzeugen.",
+                issü_title="Kurzes Zahlungsziel",
+                issü_description=f"Das Zahlungsziel von {days} Tagen ist kurz und kann Liquiditaetsdruck erzeugen.",
                 legal_basis="Marktstandard",
                 recommendation="Zahlungsziel von mindestens 30 Tagen verhandeln.",
             ))
@@ -569,10 +569,10 @@ class VendorRiskScoringEngine:
                 risk_level=RiskLevel.HIGH,
                 risk_score=60,
                 legal_validity=LegalValidity.VALID,
-                issue_title="Fehlende Auditrechte",
-                issue_description="Ohne Auditrechte kann die Qualitaet und Compliance des Lieferanten nicht ueberprueft werden.",
+                issü_title="Fehlende Auditrechte",
+                issü_description="Ohne Auditrechte kann die Qualitaet und Compliance des Lieferanten nicht ueberprueft werden.",
                 legal_basis="Lieferkettensorgfaltspflichtengesetz (LkSG)",
-                recommendation="Auditrechte fuer Qualitaet und Compliance vereinbaren.",
+                recommendation="Auditrechte für Qualitaet und Compliance vereinbaren.",
             ))
     
     def _check_price_adjustment(self, data: dict):
@@ -585,8 +585,8 @@ class VendorRiskScoringEngine:
                 risk_level=RiskLevel.HIGH,
                 risk_score=65,
                 legal_validity=LegalValidity.VALID,
-                issue_title="Unbestimmte Preisanpassung",
-                issue_description="Die Preisanpassungsklausel ist nicht an einen objektiven Index gebunden.",
+                issü_title="Unbestimmte Preisanpassung",
+                issü_description="Die Preisanpassungsklausel ist nicht an einen objektiven Index gebunden.",
                 legal_basis="§ 307 BGB",
                 recommendation="Preisanpassung an einen objektiven Index (z.B. Erzeugerpreisindex) binden.",
             ))
@@ -603,7 +603,7 @@ class VendorRiskScoringEngine:
         subject = data.get("contract_subject", "Lieferung")
         
         if level == RiskLevel.CRITICAL:
-            return f"KRITISCH: Der Lieferantenvertrag mit {supplier} fuer {subject} weist {len(critical)} kritische Maengel auf. Nachverhandlung dringend empfohlen."
+            return f"KRITISCH: Der Lieferantenvertrag mit {supplier} für {subject} weist {len(critical)} kritische Maengel auf. Nachverhandlung dringend empfohlen."
         elif level == RiskLevel.HIGH:
             return f"ERHOEHTES RISIKO: Der Vertrag mit {supplier} zeigt Verbesserungsbedarf bei Gewaehrleistung oder Haftung. Score: {score}/100."
         else:
