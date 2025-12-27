@@ -135,9 +135,137 @@ header {
 }
 
 .header-nav a.active {
-  color: var(--sbs-blue);
+
+/* Home Button */
+.home-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  color: var(--primary);
   background: rgba(0,56,86,0.08);
+  margin-right: 12px;
+  transition: all 0.2s;
 }
+.home-btn:hover { background: rgba(0,56,86,0.15); transform: scale(1.05); }
+
+/* App Switcher */
+.app-switcher-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.app-switcher-btn:hover { background: rgba(0,56,86,0.08); color: var(--primary); }
+.app-item { display: flex !important; align-items: center; gap: 12px; padding: 10px 16px !important; }
+  color: var(--sbs-blue);
+
+/* Home Button */
+.home-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  color: var(--primary);
+  background: rgba(0,56,86,0.08);
+  margin-right: 12px;
+  transition: all 0.2s;
+}
+.home-btn:hover { background: rgba(0,56,86,0.15); transform: scale(1.05); }
+
+/* App Switcher */
+.app-switcher-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.app-switcher-btn:hover { background: rgba(0,56,86,0.08); color: var(--primary); }
+.app-item { display: flex !important; align-items: center; gap: 12px; padding: 10px 16px !important; }
+  background: rgba(0,56,86,0.08);
+
+/* Home Button */
+.home-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  color: var(--primary);
+  background: rgba(0,56,86,0.08);
+  margin-right: 12px;
+  transition: all 0.2s;
+}
+.home-btn:hover { background: rgba(0,56,86,0.15); transform: scale(1.05); }
+
+/* App Switcher */
+.app-switcher-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.app-switcher-btn:hover { background: rgba(0,56,86,0.08); color: var(--primary); }
+.app-item { display: flex !important; align-items: center; gap: 12px; padding: 10px 16px !important; }
+}
+
+/* Home Button */
+.home-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  color: var(--primary);
+  background: rgba(0,56,86,0.08);
+  margin-right: 12px;
+  transition: all 0.2s;
+}
+.home-btn:hover { background: rgba(0,56,86,0.15); transform: scale(1.05); }
+
+/* App Switcher */
+.app-switcher-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.app-switcher-btn:hover { background: rgba(0,56,86,0.08); color: var(--primary); }
+.app-item { display: flex !important; align-items: center; gap: 12px; padding: 10px 16px !important; }
 
 /* Dropdown Menus */
 .dropdown {
@@ -1119,6 +1247,14 @@ footer {
 SBS_HEADER = '''
 <header>
   <div class="header-container">
+    <!-- Home Button -->
+    <a href="https://app.sbsdeutschland.com/dashboard" class="home-btn" title="Dashboard">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+      </svg>
+    </a>
+    
     <a href="/" class="header-logo">
       <img src="/static/sbs-logo-new.png" alt="SBS Logo" onerror="this.style.display='none'">
       <div class="header-logo-text">
@@ -1157,6 +1293,43 @@ SBS_HEADER = '''
             <a href="https://app.sbsdeutschland.com" class="dropdown-item cross-link" target="_blank">
               <span class="icon">🧾</span>
               → KI-Rechnungen
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <!-- App Switcher -->
+      <div class="dropdown">
+        <button class="app-switcher-btn" title="Apps wechseln">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="5" cy="5" r="2.5"/>
+            <circle cx="12" cy="5" r="2.5"/>
+            <circle cx="19" cy="5" r="2.5"/>
+            <circle cx="5" cy="12" r="2.5"/>
+            <circle cx="12" cy="12" r="2.5"/>
+            <circle cx="19" cy="12" r="2.5"/>
+            <circle cx="5" cy="19" r="2.5"/>
+            <circle cx="12" cy="19" r="2.5"/>
+            <circle cx="19" cy="19" r="2.5"/>
+          </svg>
+        </button>
+        <div class="dropdown-menu app-switcher-menu" style="width:300px;">
+          <div class="dropdown-section">
+            <div class="dropdown-label">SBS Plattform</div>
+            <a href="https://app.sbsdeutschland.com/dashboard" class="dropdown-item app-item">
+              <span class="app-icon" style="background:linear-gradient(135deg,#003856,#004d73);width:36px;height:36px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:16px;color:white;">🏠</span>
+              <div style="display:flex;flex-direction:column;"><strong>Dashboard</strong><small style="color:#64748b;">Übersicht & Kennzahlen</small></div>
+            </a>
+          </div>
+          <div class="dropdown-section">
+            <div class="dropdown-label">Produkte</div>
+            <a href="https://app.sbsdeutschland.com" class="dropdown-item app-item">
+              <span class="app-icon" style="background:linear-gradient(135deg,#22c55e,#16a34a);width:36px;height:36px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:16px;color:white;">📄</span>
+              <div style="display:flex;flex-direction:column;"><strong>KI-Rechnungen</strong><small style="color:#64748b;">Rechnungsverarbeitung</small></div>
+            </a>
+            <a href="/" class="dropdown-item app-item" style="background:rgba(255,185,0,0.1);border-left:3px solid #FFB900;">
+              <span class="app-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706);width:36px;height:36px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:16px;color:white;">📋</span>
+              <div style="display:flex;flex-direction:column;"><strong>KI-Verträge</strong><small style="color:#64748b;">Vertragsanalyse</small></div>
             </a>
           </div>
         </div>

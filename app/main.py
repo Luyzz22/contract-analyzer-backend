@@ -264,7 +264,7 @@ async def history_page(request: Request):
             status_badge = f'<span class="badge badge-info">{status}</span>'
         
         table_rows += f'''
-        <tr onclick="window.location='/api/v3/contracts/{contract_id}'">
+        <tr onclick="window.location='/contracts/{contract_id}'" style="cursor:pointer;">
           <td><strong>{filename}</strong></td>
           <td><span class="badge badge-info">{type_label}</span></td>
           <td>{date_str}</td>
@@ -544,7 +544,7 @@ from .pages_enterprise import (
 
 # Admin Users
 ADMIN_USERNAMES = {"luis220195", "admin"}
-ADMIN_EMAILS = {"info@sbsdeutschland.com", "luis@sbsdeutschland.com"}
+ADMIN_EMAILS = {"info@sbsdeutschland.com", "luis@sbsdeutschland.com", "luis220195@gmail.com"}
 
 def get_user_info(request: Request):
     """Holt User-Info aus SSO oder gibt Defaults zurück."""
@@ -580,7 +580,7 @@ async def settings_page(request: Request):
 @app.get("/billing", response_class=HTMLResponse)
 async def billing_page(request: Request):
     user = get_user_info(request)
-    return get_billing_page(user["name"])
+    return get_billing_page(user["name"], user.get("is_admin", False), user.get("email"))
 
 @app.get("/team", response_class=HTMLResponse)
 async def team_page(request: Request):
@@ -596,8 +596,327 @@ async def audit_page(request: Request):
 # API V3 ROUTES (Frontend Compatible)
 # ============================================================================
 
-@app.get("/api/v3/contracts")
-async def api_list_contracts(limit: int = 50):
+@app.get("/contracts/{contract_id}", response_class=HTMLResponse)
+async def contract_detail_page(contract_id: str, request: Request):
+    """Einzelne Vertragsdetailseite"""
+    user = get_user_info(request)
+    
+    # Vertrag aus DB laden
+    conn = _init_db()
+    try:
+        meta = conn.execute(
+            "SELECT contract_id, filename, contract_type, created_at, status, risk_level, risk_score "
+            "FROM contracts WHERE contract_id = ?", (contract_id,)
+        ).fetchone()
+        
+        analysis = conn.execute(
+            "SELECT analysis_json FROM analysis_results WHERE contract_id = ?", (contract_id,)
+        ).fetchone()
+    finally:
+        conn.close()
+    
+    if not meta:
+        raise HTTPException(status_code=404, detail="Vertrag nicht gefunden")
+    
+    contract_id, filename, ctype, created_at, status, risk_level, risk_score = meta
+    
+    # Analyse-Daten parsen
+    analysis_data = {}
+    if analysis and analysis[0]:
+        analysis_data = json.loads(analysis[0])
+    
+    # Vertragstyp-Labels
+    type_labels = {
+        "employment": "Arbeitsvertrag", "saas": "SaaS-Vertrag", "nda": "NDA",
+        "vendor": "Lieferantenvertrag", "service": "Dienstleistungsvertrag",
+        "rental": "Mietvertrag", "purchase": "Kaufvertrag", "general": "Allgemein",
+    }
+    type_label = type_labels.get(ctype, ctype or "Allgemein")
+    
+    # Datum formatieren
+    try:
+        dt = datetime.fromisoformat(created_at)
+        date_str = dt.strftime("%d.%m.%Y um %H:%M Uhr")
+    except:
+        date_str = created_at[:16] if created_at else "-"
+    
+    # Risiko-Farbe
+    risk_colors = {"critical": "#dc2626", "high": "#ea580c", "medium": "#d97706", "low": "#16a34a"}
+    risk_color = risk_colors.get(risk_level, "#6b7280")
+    risk_label = {"critical": "Kritisch", "high": "Hoch", "medium": "Mittel", "low": "Niedrig"}.get(risk_level, risk_level)
+    
+    # Extrahierte Daten
+    extracted_data = analysis_data.get("extracted_data", {})
+    risk_assessment = analysis_data.get("risk_assessment", {})
+    summary = risk_assessment.get("executive_summary", "Keine Zusammenfassung verfügbar.")
+    
+    # Felder als HTML
+    fields_html = ""
+    field_labels = {
+        "vendor_name": "Anbieter", "customer_name": "Kunde", "product_name": "Produkt",
+        "auto_renew": "Auto-Renewal", "renewal_notice_days": "Kündigungsfrist (Tage)",
+        "min_term_months": "Mindestlaufzeit (Monate)", "data_location": "Datenlokation",
+        "uptime_sla_percent": "SLA Uptime (%)", "liability_cap_multiple_acv": "Haftungsgrenze (x ACV)",
+        "annual_contract_value_eur": "Jährlicher Wert (EUR)", "billing_interval": "Abrechnungsintervall",
+        "parties": "Parteien", "start_date": "Startdatum", "end_date": "Enddatum",
+        "base_salary_eur": "Grundgehalt (EUR)", "vacation_days_per_year": "Urlaubstage",
+        "weekly_hours": "Wochenstunden", "probation_period_months": "Probezeit (Monate)",
+        "disclosing_party": "Offenlegende Partei", "receiving_party": "Empfangende Partei",
+        "term_years": "Laufzeit (Jahre)", "penalty_amount_eur": "Vertragsstrafe (EUR)",
+    }
+    
+    for key, value in extracted_data.items():
+        if value is not None and value != "" and value != []:
+            label = field_labels.get(key, key.replace("_", " ").title())
+            if isinstance(value, bool):
+                value = "Ja" if value else "Nein"
+            elif isinstance(value, list):
+                if value and isinstance(value[0], dict):
+                    value = ", ".join([f"{p.get('name', 'N/A')}" for p in value])
+                else:
+                    value = ", ".join(str(v) for v in value)
+            fields_html += f'<tr><td style="font-weight:500;color:var(--sbs-blue);">{label}</td><td>{value}</td></tr>'
+    
+    # Risiken als HTML
+    risks_html = ""
+    all_risks = []
+    for level in ["critical_risks", "high_risks", "medium_risks", "low_risks"]:
+        for risk in risk_assessment.get(level, []):
+            risk["level"] = level.replace("_risks", "")
+            all_risks.append(risk)
+    
+    for risk in all_risks:
+        level = risk.get("level", "medium")
+        title = risk.get("title", risk.get("issue_title", "Risiko"))
+        desc = risk.get("description", risk.get("issue_description", ""))
+        clause = risk.get("clause_snippet", risk.get("clause_text", ""))
+        r_color = risk_colors.get(level, "#6b7280")
+        r_label = {"critical": "Kritisch", "high": "Hoch", "medium": "Mittel", "low": "Niedrig"}.get(level, level)
+        
+        risks_html += f'''
+        <div style="background:#fff;border-radius:12px;padding:20px;margin-bottom:16px;border-left:4px solid {r_color};">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <strong style="color:var(--sbs-blue);">{title}</strong>
+            <span class="badge" style="background:{r_color}20;color:{r_color};">{r_label}</span>
+          </div>
+          <p style="color:var(--sbs-muted);margin-bottom:8px;">{desc}</p>
+          {f'<p style="font-style:italic;color:#666;font-size:0.9rem;background:#f8fafc;padding:12px;border-radius:8px;">„{clause}"</p>' if clause else ''}
+        </div>
+        '''
+    
+    if not risks_html:
+        risks_html = '<p style="color:var(--sbs-muted);text-align:center;padding:40px;">✅ Keine Risiken identifiziert</p>'
+    
+    return get_contract_detail_page(user["name"], contract_id, filename, type_label, date_str, 
+                                     risk_level, risk_label, risk_score or 0, risk_color, 
+                                     summary, fields_html, risks_html)
+
+
+def get_contract_detail_page(user_name, contract_id, filename, type_label, date_str, 
+                              risk_level, risk_label, risk_score, risk_color, summary, fields_html, risks_html):
+    """Generiert Vertrags-Detailseite."""
+    from .pages_enterprise import PAGE_CSS, get_header, get_footer
+    
+    return f'''<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{filename} | SBS Contract Intelligence</title>
+  <link rel="icon" href="/static/favicon.ico">
+  {PAGE_CSS}
+</head>
+<body>
+{get_header(user_name, "verlauf")}
+<main>
+<div class="hero">
+  <div class="container">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+      <a href="/history" style="color:#fff;opacity:0.7;text-decoration:none;">← Zurück zum Verlauf</a>
+    </div>
+    <div class="hero-badge"><span class="dot"></span> {type_label.upper()}</div>
+    <h1>📄 {filename}</h1>
+    <p>Analysiert am {date_str}</p>
+  </div>
+</div>
+<div class="page-container">
+  <!-- Risiko-Overview -->
+  <div class="content-card" style="border-left:4px solid {risk_color};margin-bottom:24px;">
+    <div class="content-card-body">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:24px;">
+        <div>
+          <div style="font-size:0.85rem;color:var(--sbs-muted);margin-bottom:4px;">RISIKO-BEWERTUNG</div>
+          <div style="font-size:2rem;font-weight:700;color:{risk_color};">{risk_label}</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:3rem;font-weight:700;color:{risk_color};">{risk_score}</div>
+          <div style="font-size:0.85rem;color:var(--sbs-muted);">von 100</div>
+        </div>
+        <div style="display:flex;gap:12px;">
+          <a href="/api/v3/contracts/{contract_id}/export/pdf" class="btn btn-primary">📄 PDF Export</a>
+          <a href="/api/v3/contracts/{contract_id}/export/json" class="btn btn-secondary">📋 JSON Export</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Zusammenfassung -->
+  <div class="content-card" style="margin-bottom:24px;">
+    <div class="content-card-header"><h3 class="content-card-title">📝 Zusammenfassung</h3></div>
+    <div class="content-card-body">
+      <p style="line-height:1.8;color:var(--sbs-text);">{summary}</p>
+    </div>
+  </div>
+  
+  <div class="grid-2">
+    <!-- Extrahierte Daten -->
+    <div class="content-card">
+      <div class="content-card-header"><h3 class="content-card-title">📊 Extrahierte Daten</h3></div>
+      <div class="content-card-body" style="padding:0;">
+        <table class="data-table">
+          <tbody>{fields_html if fields_html else '<tr><td colspan="2" style="text-align:center;padding:40px;color:var(--sbs-muted);">Keine Daten extrahiert</td></tr>'}</tbody>
+        </table>
+      </div>
+    </div>
+    
+    <!-- Risiken -->
+    <div class="content-card">
+      <div class="content-card-header"><h3 class="content-card-title">⚠️ Identifizierte Risiken</h3></div>
+      <div class="content-card-body" style="background:#f8fafc;">
+        {risks_html}
+      </div>
+    </div>
+  </div>
+</div>
+</main>
+{get_footer()}
+</body>
+</html>'''
+
+
+@app.get("/library/clause/{clause_id}", response_class=HTMLResponse)
+async def clause_detail_page(clause_id: int, request: Request):
+    """Klausel-Detailseite."""
+    user = get_user_info(request)
+    
+    # Klausel-Daten (später aus DB)
+    clauses = {
+        1: {"name": "Kündigungsklausel Standard", "type": "Allgemein", "risk": "low", "usage": 47,
+            "text": "Der Vertrag kann von beiden Parteien mit einer Frist von 30 Tagen zum Monatsende gekündigt werden. Die Kündigung bedarf der Schriftform.",
+            "explanation": "Diese Standard-Kündigungsklausel entspricht den üblichen Gepflogenheiten im deutschen Vertragsrecht. Die 30-Tage-Frist ist ausgewogen und gibt beiden Parteien ausreichend Zeit für die Neuorganisation.",
+            "laws": ["BGB § 621", "BGB § 622"]},
+        2: {"name": "Haftungsbegrenzung 1x ACV", "type": "SaaS", "risk": "medium", "usage": 32,
+            "text": "Die Haftung des Anbieters ist auf den jährlichen Vertragswert (Annual Contract Value) begrenzt. Dies gilt nicht für Vorsatz und grobe Fahrlässigkeit.",
+            "explanation": "Eine Haftungsbegrenzung auf 1x ACV ist marktüblich für SaaS-Verträge. Bei kritischen Anwendungen sollte eine höhere Grenze (2-3x ACV) verhandelt werden.",
+            "laws": ["BGB § 276", "BGB § 307"]},
+        3: {"name": "Geheimhaltung 5 Jahre", "type": "NDA", "risk": "low", "usage": 28,
+            "text": "Die empfangende Partei verpflichtet sich, alle vertraulichen Informationen für einen Zeitraum von 5 Jahren nach Beendigung des Vertrags geheim zu halten.",
+            "explanation": "Eine 5-jährige Geheimhaltungsfrist ist Standard für die meisten Geschäftsbeziehungen. Bei technischen Informationen kann eine längere Frist angemessen sein.",
+            "laws": ["GeschGehG § 2", "BGB § 823"]},
+        4: {"name": "Auto-Renewal 30 Tage", "type": "SaaS", "risk": "low", "usage": 25,
+            "text": "Der Vertrag verlängert sich automatisch um jeweils 12 Monate, sofern er nicht mit einer Frist von 30 Tagen vor Ablauf gekündigt wird.",
+            "explanation": "30 Tage Kündigungsfrist bei Auto-Renewal ist kundenfreundlich. Kritisch sind Klauseln mit weniger als 14 Tagen oder automatischer Verlängerung um mehr als 12 Monate.",
+            "laws": ["BGB § 309 Nr. 9"]},
+        5: {"name": "Datenlokation EU", "type": "SaaS", "risk": "low", "usage": 21,
+            "text": "Sämtliche Kundendaten werden ausschließlich auf Servern innerhalb der Europäischen Union verarbeitet und gespeichert.",
+            "explanation": "EU-Datenlokation ist optimal für DSGVO-Compliance. Vermeiden Sie Klauseln, die USA-Server erlauben, ohne explizite Nennung von EU-US Data Privacy Framework.",
+            "laws": ["DSGVO Art. 44-49", "BDSG § 80"]},
+        6: {"name": "Eigentumsübergang bei Zahlung", "type": "Kaufvertrag", "risk": "low", "usage": 19,
+            "text": "Das Eigentum an der Ware geht erst mit vollständiger Bezahlung des Kaufpreises auf den Käufer über (Eigentumsvorbehalt).",
+            "explanation": "Ein einfacher Eigentumsvorbehalt ist Standard und schützt den Verkäufer. Bei größeren Geschäften kann ein verlängerter oder erweiterter Eigentumsvorbehalt sinnvoll sein.",
+            "laws": ["BGB § 449", "BGB § 929"]},
+        7: {"name": "Vertragsstrafe 10%", "type": "Lieferant", "risk": "medium", "usage": 15,
+            "text": "Bei Verzug mit der Lieferung ist der Lieferant verpflichtet, eine Vertragsstrafe in Höhe von 10% des Auftragswertes zu zahlen, maximal jedoch 50% des Gesamtauftragswertes.",
+            "explanation": "10% Vertragsstrafe ist im oberen Bereich des Üblichen. Die Deckelung auf 50% schützt vor unverhältnismäßigen Forderungen. Achten Sie auf klare Definition des Verzugsbeginns.",
+            "laws": ["BGB § 339-345", "BGB § 307"]},
+        8: {"name": "Indexmiete jährlich", "type": "Mietvertrag", "risk": "medium", "usage": 12,
+            "text": "Die Miete wird jährlich entsprechend der Veränderung des Verbraucherpreisindex angepasst. Eine Anpassung erfolgt nur, wenn der Index um mindestens 3% gestiegen ist.",
+            "explanation": "Indexmieten sind bei Gewerbemietverträgen üblich. Die 3%-Schwelle schützt vor häufigen Anpassungen. Achten Sie auf den Basismonat und die Berechnungsmethode.",
+            "laws": ["BGB § 557b"]},
+    }
+    
+    clause = clauses.get(clause_id)
+    if not clause:
+        raise HTTPException(status_code=404, detail="Klausel nicht gefunden")
+    
+    risk_colors = {"low": "#16a34a", "medium": "#d97706", "high": "#ea580c", "critical": "#dc2626"}
+    risk_labels = {"low": "Niedrig", "medium": "Mittel", "high": "Hoch", "critical": "Kritisch"}
+    
+    laws_html = "".join([f'<span class="badge badge-info" style="margin-right:8px;margin-bottom:8px;">{law}</span>' for law in clause["laws"]])
+    
+    return get_clause_detail_page(user["name"], clause, risk_colors[clause["risk"]], risk_labels[clause["risk"]], laws_html)
+
+
+def get_clause_detail_page(user_name, clause, risk_color, risk_label, laws_html):
+    """Generiert Klausel-Detailseite."""
+    from .pages_enterprise import PAGE_CSS, get_header, get_footer
+    
+    return f'''<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{clause["name"]} | Klausel-Bibliothek</title>
+  <link rel="icon" href="/static/favicon.ico">
+  {PAGE_CSS}
+</head>
+<body>
+{get_header(user_name, "tools")}
+<main>
+<div class="hero">
+  <div class="container">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+      <a href="/library" style="color:#fff;opacity:0.7;text-decoration:none;">← Zurück zur Bibliothek</a>
+    </div>
+    <div class="hero-badge"><span class="dot"></span> {clause["type"].upper()}</div>
+    <h1>📜 {clause["name"]}</h1>
+    <p>{clause["usage"]}x in Verträgen verwendet</p>
+  </div>
+</div>
+<div class="page-container">
+  <!-- Risiko-Badge -->
+  <div style="margin-bottom:24px;">
+    <span class="badge" style="background:{risk_color}20;color:{risk_color};font-size:1rem;padding:8px 16px;">
+      Risiko: {risk_label}
+    </span>
+  </div>
+  
+  <!-- Klauseltext -->
+  <div class="content-card" style="margin-bottom:24px;">
+    <div class="content-card-header"><h3 class="content-card-title">📄 Klauseltext</h3></div>
+    <div class="content-card-body">
+      <p style="font-size:1.1rem;line-height:1.8;background:#f8fafc;padding:24px;border-radius:12px;border-left:4px solid var(--sbs-blue);">
+        „{clause["text"]}"
+      </p>
+    </div>
+  </div>
+  
+  <!-- Erklärung -->
+  <div class="content-card" style="margin-bottom:24px;">
+    <div class="content-card-header"><h3 class="content-card-title">💡 Rechtliche Einschätzung</h3></div>
+    <div class="content-card-body">
+      <p style="line-height:1.8;color:var(--sbs-text);">{clause["explanation"]}</p>
+    </div>
+  </div>
+  
+  <!-- Relevante Gesetze -->
+  <div class="content-card">
+    <div class="content-card-header"><h3 class="content-card-title">⚖️ Relevante Gesetze</h3></div>
+    <div class="content-card-body">
+      {laws_html}
+    </div>
+  </div>
+  
+  <!-- Aktionen -->
+  <div style="margin-top:32px;display:flex;gap:16px;">
+    <button class="btn btn-primary" onclick="navigator.clipboard.writeText(`{clause["text"]}`)">📋 Klausel kopieren</button>
+    <a href="/library" class="btn btn-secondary">← Zurück</a>
+  </div>
+</div>
+</main>
+{get_footer()}
+</body>
+</html>'''
     """Liste aller Verträge für Frontend"""
     conn = _init_db()
     try:
@@ -621,6 +940,33 @@ async def api_list_contracts(limit: int = 50):
     } for r in rows]
     
     return {"items": items, "contracts": items, "count": len(items)}
+
+@app.get("/api/v3/contracts")
+async def api_list_contracts(limit: int = 50):
+    """Liste aller Verträge."""
+    conn = _init_db()
+    try:
+        rows = conn.execute(
+            "SELECT contract_id, filename, contract_type, created_at, status, risk_level, risk_score "
+            "FROM contracts ORDER BY created_at DESC LIMIT ?", (limit,)
+        ).fetchall()
+    finally:
+        conn.close()
+    
+    contracts = []
+    for r in rows:
+        contracts.append({
+            "contract_id": r[0],
+            "filename": r[1],
+            "contract_type": r[2],
+            "created_at": r[3],
+            "status": r[4],
+            "risk_level": r[5],
+            "risk_score": r[6]
+        })
+    
+    return {"contracts": contracts, "total": len(contracts)}
+
 
 @app.post("/api/v3/contracts/upload")
 async def api_upload_contract(request: Request):
@@ -659,6 +1005,12 @@ async def api_upload_contract(request: Request):
             (contract_id, safe_filename, str(contract_type), datetime.utcnow().isoformat(), "uploaded")
         )
         conn.commit()
+        # Audit-Log
+        try:
+            user = get_user_info(request)
+            from .enterprise_features import log_audit
+            log_audit(user.get("email", "anonymous"), "upload", "contract", contract_id, f"Vertrag hochgeladen: {safe_filename}", request.client.host if request.client else None, user.get("name", "Gast"))
+        except: pass
     finally:
         conn.close()
     
@@ -1041,3 +1393,463 @@ async def shutdown():
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("app.main:app", host="0.0.0.0", port=8001, reload=True)
+
+# Logout Route
+@app.get("/logout")
+async def logout():
+    """Logout - löscht SSO Cookie und leitet zur Hauptseite"""
+    from fastapi.responses import RedirectResponse
+    response = RedirectResponse(url="https://app.sbsdeutschland.com/logout", status_code=303)
+    response.delete_cookie("sbs_auth_token", domain=".sbsdeutschland.com", path="/")
+    response.delete_cookie("sbs_session", domain=".sbsdeutschland.com", path="/")
+    return response
+
+# Passwort ändern API
+@app.post("/api/change-password")
+async def change_password(request: Request):
+    """Passwort ändern - nutzt die zentrale User-DB"""
+    import hashlib
+    user = get_user_info(request)
+    if not user.get("email"):
+        return {"success": False, "error": "Nicht eingeloggt"}
+    
+    form = await request.form()
+    current_pw = form.get("current_password", "")
+    new_pw = form.get("new_password", "")
+    
+    if len(new_pw) < 8:
+        return {"success": False, "error": "Passwort muss mindestens 8 Zeichen haben"}
+    
+    # Verbinde zur zentralen User-DB (Invoice-App)
+    import sqlite3
+    conn = sqlite3.connect("/var/www/invoice-app/invoices.db")
+    cursor = conn.cursor()
+    
+    # Prüfe aktuelles Passwort
+    current_hash = hashlib.sha256(current_pw.encode()).hexdigest()
+    user_row = cursor.execute(
+        "SELECT id FROM users WHERE email = ? AND password_hash = ?",
+        (user["email"], current_hash)
+    ).fetchone()
+    
+    if not user_row:
+        conn.close()
+        return {"success": False, "error": "Aktuelles Passwort ist falsch"}
+    
+    # Neues Passwort setzen
+    new_hash = hashlib.sha256(new_pw.encode()).hexdigest()
+    cursor.execute("UPDATE users SET password_hash = ? WHERE email = ?", (new_hash, user["email"]))
+    conn.commit()
+    conn.close()
+    
+    return {"success": True, "message": "Passwort erfolgreich geändert"}
+
+# API-Key generieren
+@app.post("/api/settings/generate-key")
+async def api_generate_key(request: Request):
+    """Generiert einen neuen API-Key für den User"""
+    user = get_user_info(request)
+    if not user.get("email"):
+        return {"success": False, "error": "Nicht eingeloggt"}
+    
+    from .enterprise_features import generate_api_key
+    api_key = generate_api_key(user["email"])
+    
+    # Audit-Log
+    from .enterprise_features import log_audit
+    log_audit(user["email"], "api_key_generated", "settings", None, "API-Key generiert", request.client.host if request.client else None, user["name"])
+    
+    return {"success": True, "api_key": api_key}
+
+# API-Key widerrufen
+@app.post("/api/settings/revoke-key")
+async def api_revoke_key(request: Request):
+    """Widerruft den API-Key des Users"""
+    user = get_user_info(request)
+    if not user.get("email"):
+        return {"success": False, "error": "Nicht eingeloggt"}
+    
+    from .enterprise_features import revoke_api_key
+    result = revoke_api_key(user["email"])
+    
+    if result.get("success"):
+        from .enterprise_features import log_audit
+        log_audit(user["email"], "api_key_revoked", "settings", None, "API-Key widerrufen", request.client.host if request.client else None, user["name"])
+    
+    return result
+
+# Notification Settings speichern
+@app.post("/api/settings/notifications")
+async def api_save_notifications(request: Request):
+    """Speichert Notification-Einstellungen"""
+    user = get_user_info(request)
+    if not user.get("email"):
+        return {"success": False, "error": "Nicht eingeloggt"}
+    
+    form = await request.form()
+    email_notif = form.get("notification_email") == "true"
+    slack_notif = form.get("notification_slack") == "true"
+    
+    from .enterprise_features import update_user_settings
+    result = update_user_settings(user["email"], notification_email=email_notif, notification_slack=slack_notif)
+    
+    return result
+
+# Team-Mitglied einladen
+@app.post("/api/team/invite")
+async def api_team_invite(request: Request):
+    """Lädt ein neues Team-Mitglied ein"""
+    user = get_user_info(request)
+    if not user.get("email"):
+        return {"success": False, "error": "Nicht eingeloggt"}
+    
+    form = await request.form()
+    invite_email = form.get("email", "").strip()
+    invite_name = form.get("name", "").strip()
+    invite_role = form.get("role", "viewer")
+    
+    if not invite_email or "@" not in invite_email:
+        return {"success": False, "error": "Ungültige E-Mail-Adresse"}
+    
+    if not invite_name:
+        return {"success": False, "error": "Name erforderlich"}
+    
+    from .enterprise_features import add_team_member, log_audit
+    result = add_team_member(invite_email, invite_name, invite_role, user["email"])
+    
+    if result.get("success"):
+        log_audit(user["email"], "team_invite", "team", None, f"Eingeladen: {invite_email} als {invite_role}", request.client.host if request.client else None, user["name"])
+    
+    return result
+
+# Team-Mitglied entfernen
+@app.post("/api/team/remove")
+async def api_team_remove(request: Request):
+    """Entfernt ein Team-Mitglied"""
+    user = get_user_info(request)
+    if not user.get("email"):
+        return {"success": False, "error": "Nicht eingeloggt"}
+    
+    form = await request.form()
+    remove_email = form.get("email", "").strip()
+    
+    from .enterprise_features import remove_team_member, log_audit
+    result = remove_team_member(remove_email)
+    
+    if result.get("success"):
+        log_audit(user["email"], "team_remove", "team", None, f"Entfernt: {remove_email}", request.client.host if request.client else None, user["name"])
+    
+    return result
+
+# ============================================================================
+# CONTRACT COPILOT
+# ============================================================================
+
+@app.get("/copilot", response_class=HTMLResponse)
+async def copilot_page(request: Request):
+    """Contract Copilot - Chat mit Verträgen"""
+    user = get_user_info(request)
+    user_name = user.get("name", "Gast")
+    from .copilot_page import get_copilot_page
+    return get_copilot_page(user_name)
+
+@app.post("/api/copilot/chat")
+async def copilot_chat(request: Request):
+    """Chat mit Contract Copilot"""
+    user = get_user_info(request)
+    
+    try:
+        body = await request.json()
+        message = body.get("message", "").strip()
+        contract_id = body.get("contract_id")
+        history = body.get("history", [])
+    except:
+        form = await request.form()
+        message = form.get("message", "").strip()
+        contract_id = form.get("contract_id")
+        history = []
+    
+    if not message:
+        return {"success": False, "error": "Keine Nachricht"}
+    
+    # Kontext laden falls contract_id vorhanden
+    context = ""
+    contract_info = None
+    if contract_id:
+        conn = _init_db()
+        row = conn.execute("SELECT analysis_json FROM analysis_results WHERE contract_id = ?", (contract_id,)).fetchone()
+        contract_row = conn.execute("SELECT filename, contract_type FROM contracts WHERE contract_id = ?", (contract_id,)).fetchone()
+        conn.close()
+        
+        if row:
+            import json
+            analysis = json.loads(row[0])
+            contract_info = {
+                "filename": contract_row[0] if contract_row else "Unbekannt",
+                "type": contract_row[1] if contract_row else "general",
+                "risk_level": analysis.get("risk_assessment", {}).get("overall_risk_level", "unknown"),
+                "risk_score": analysis.get("risk_assessment", {}).get("overall_risk_score", 0)
+            }
+            context = f"""
+VERTRAGSKONTEXT:
+- Datei: {contract_info['filename']}
+- Typ: {contract_info['type']}
+- Risikolevel: {contract_info['risk_level']} ({contract_info['risk_score']}/100)
+- Zusammenfassung: {analysis.get('risk_assessment', {}).get('executive_summary', 'Keine Zusammenfassung')}
+
+EXTRAHIERTE DATEN:
+{json.dumps(analysis.get('extracted_data', {}), indent=2, ensure_ascii=False)}
+
+RISIKEN:
+{json.dumps(analysis.get('risk_assessment', {}).get('critical_risks', []) + analysis.get('risk_assessment', {}).get('high_risks', []), indent=2, ensure_ascii=False)}
+"""
+    
+    # Alle Verträge als Übersicht wenn kein spezifischer ausgewählt
+    if not contract_id:
+        conn = _init_db()
+        contracts = conn.execute("SELECT contract_id, filename, contract_type, status, risk_level, risk_score FROM contracts ORDER BY created_at DESC LIMIT 20").fetchall()
+        conn.close()
+        
+        if contracts:
+            context = "VERFÜGBARE VERTRÄGE:\n"
+            for c in contracts:
+                context += f"- {c[1]} (Typ: {c[2]}, Status: {c[3]}, Risiko: {c[4] or 'unbekannt'})\n"
+    
+    # OpenAI API Call
+    import os
+    import httpx
+    
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        return {"success": False, "error": "OpenAI API nicht konfiguriert"}
+    
+    system_prompt = f"""Du bist der SBS Contract Copilot, ein KI-Assistent für Vertragsanalyse.
+Du hilfst Nutzern bei Fragen zu ihren Verträgen, Risiken und rechtlichen Themen.
+
+Deine Aufgaben:
+- Verträge erklären und zusammenfassen
+- Risiken identifizieren und bewerten
+- Klauseln erläutern
+- Handlungsempfehlungen geben
+- Fristen und wichtige Termine hervorheben
+
+Antworte auf Deutsch, professionell aber verständlich.
+Wenn du Risiken oder problematische Klauseln findest, weise klar darauf hin.
+
+{context}
+"""
+
+    messages = [{"role": "system", "content": system_prompt}]
+    for h in history[-10:]:
+        messages.append({"role": h.get("role", "user"), "content": h.get("content", "")})
+    messages.append({"role": "user", "content": message})
+    
+    try:
+        async with httpx.AsyncClient(timeout=60) as client:
+            response = await client.post(
+                "https://api.openai.com/v1/chat/completions",
+                headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+                json={"model": "gpt-4o-mini", "messages": messages, "temperature": 0.7, "max_tokens": 1500}
+            )
+            result = response.json()
+            
+            if "choices" in result:
+                answer = result["choices"][0]["message"]["content"]
+                
+                # Audit Log
+                from .enterprise_features import log_audit
+                log_audit(user.get("email", "anonymous"), "copilot_chat", "copilot", contract_id, f"Frage: {message[:50]}...", request.client.host if request.client else None, user.get("name", "Gast"))
+                # Usage Tracking
+                try:
+                    from .usage_tracking import track_event
+                    track_event(user.get("email", "anonymous"), "copilot_query", contract_id)
+                except: pass
+                
+                return {"success": True, "answer": answer, "contract_info": contract_info}
+            else:
+                return {"success": False, "error": result.get("error", {}).get("message", "API Fehler")}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+@app.get("/api/copilot/contracts")
+async def copilot_contracts(request: Request):
+    """Liste aller Verträge für Copilot Kontext"""
+    conn = _init_db()
+    contracts = conn.execute("""
+        SELECT c.contract_id, c.filename, c.contract_type, c.status, c.risk_level, c.risk_score, c.created_at
+        FROM contracts c
+        ORDER BY c.created_at DESC
+        LIMIT 50
+    """).fetchall()
+    conn.close()
+    
+    return {"contracts": [
+        {"id": c[0], "filename": c[1], "type": c[2], "status": c[3], "risk_level": c[4], "risk_score": c[5], "created_at": c[6]}
+        for c in contracts
+    ]}
+
+# ============================================================================
+# FRISTEN-ALERTS
+# ============================================================================
+
+@app.get("/api/deadlines")
+async def get_deadlines(request: Request):
+    """Holt kommende Vertragsfristen"""
+    from .deadline_alerts import get_upcoming_deadlines, init_alerts_table
+    init_alerts_table()
+    deadlines = get_upcoming_deadlines(days_ahead=60)
+    return {"deadlines": deadlines, "count": len(deadlines)}
+
+@app.get("/api/alerts/pending")
+async def get_pending_alerts(request: Request):
+    """Holt ausstehende Alerts"""
+    user = get_user_info(request)
+    from .deadline_alerts import get_pending_alerts
+    alerts = get_pending_alerts(user.get("email"))
+    return {"alerts": alerts, "count": len(alerts)}
+
+@app.post("/api/alerts/check")
+async def run_alert_check(request: Request):
+    """Führt manuellen Fristen-Check aus (Admin only)"""
+    user = get_user_info(request)
+    if not user.get("is_admin"):
+        return {"success": False, "error": "Nur für Admins"}
+    
+    from .deadline_alerts import run_daily_check
+    run_daily_check()
+    return {"success": True, "message": "Fristen-Check durchgeführt"}
+
+@app.get("/deadlines", response_class=HTMLResponse)
+async def deadlines_page(request: Request):
+    """Fristen-Übersicht Seite"""
+    user = get_user_info(request)
+    user_name = user.get("name", "Gast")
+    from .deadline_page import get_deadlines_page
+    return get_deadlines_page(user_name)
+
+# ============================================================================
+# USAGE TRACKING
+# ============================================================================
+
+@app.get("/api/usage")
+async def get_usage(request: Request):
+    """Holt aktuellen Verbrauch des Users"""
+    user = get_user_info(request)
+    email = user.get("email", "anonymous")
+    
+    from .usage_tracking import get_usage_with_limits, init_usage_tables
+    init_usage_tables()
+    
+    data = get_usage_with_limits(email)
+    return data
+
+@app.get("/api/usage/history")
+async def get_usage_history(request: Request):
+    """Holt Usage-Historie"""
+    user = get_user_info(request)
+    email = user.get("email", "anonymous")
+    
+    from .usage_tracking import get_usage_history
+    history = get_usage_history(email, months=6)
+    return {"history": history}
+
+@app.post("/api/usage/check")
+async def check_usage_limit(request: Request):
+    """Prüft ob Limit erreicht"""
+    user = get_user_info(request)
+    email = user.get("email", "anonymous")
+    
+    body = await request.json()
+    event_type = body.get("event_type", "analysis")
+    
+    from .usage_tracking import check_limit
+    result = check_limit(email, event_type)
+    return result
+
+# ============================================================================
+# STRIPE BILLING
+# ============================================================================
+
+@app.post("/api/billing/checkout")
+async def create_checkout(request: Request):
+    """Erstellt Stripe Checkout Session für Plan-Upgrade"""
+    user = get_user_info(request)
+    email = user.get("email")
+    
+    if not email:
+        return {"success": False, "error": "Nicht eingeloggt"}
+    
+    try:
+        body = await request.json()
+        plan_id = body.get("plan_id", "starter")
+        interval = body.get("interval", "monthly")
+    except:
+        form = await request.form()
+        plan_id = form.get("plan_id", "starter")
+        interval = form.get("interval", "monthly")
+    
+    from .stripe_billing import create_checkout_session
+    result = create_checkout_session(email, plan_id, interval)
+    return result
+
+@app.get("/api/billing/portal")
+async def billing_portal(request: Request):
+    """Redirect zum Stripe Customer Portal"""
+    user = get_user_info(request)
+    email = user.get("email")
+    
+    if not email:
+        from fastapi.responses import RedirectResponse
+        return RedirectResponse("/login")
+    
+    from .stripe_billing import create_portal_session
+    result = create_portal_session(email)
+    
+    if result.get("success"):
+        from fastapi.responses import RedirectResponse
+        return RedirectResponse(result["portal_url"])
+    else:
+        return {"success": False, "error": result.get("error")}
+
+@app.post("/api/billing/webhook")
+async def stripe_webhook(request: Request):
+    """Stripe Webhook Endpoint"""
+    payload = await request.body()
+    sig_header = request.headers.get("stripe-signature", "")
+    
+    from .stripe_billing import handle_webhook
+    result = handle_webhook(payload, sig_header)
+    
+    if result.get("success"):
+        return {"received": True}
+    else:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=400, detail=result.get("error"))
+
+@app.get("/api/billing/status")
+async def billing_status(request: Request):
+    """Holt aktuellen Billing-Status"""
+    user = get_user_info(request)
+    email = user.get("email")
+    
+    if not email:
+        return {"success": False, "error": "Nicht eingeloggt"}
+    
+    from .stripe_billing import get_subscription_status
+    from .usage_tracking import get_user_plan, get_monthly_usage
+    
+    stripe_status = get_subscription_status(email)
+    plan = get_user_plan(email)
+    usage = get_monthly_usage(email)
+    
+    return {
+        "stripe": stripe_status,
+        "plan": plan,
+        "usage": usage
+    }
+
+@app.get("/pricing")
+async def pricing_page(request: Request):
+    """Redirect zur Hauptseite Preisseite"""
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse("https://sbsdeutschland.com/loesungen/vertragsanalyse/preise.html")
