@@ -2081,3 +2081,54 @@ async def get_audit_logs(request: Request, limit: int = 50, offset: int = 0):
         "logs": [dict(l) for l in logs] if logs else [],
         "total": total
     }
+
+# ============================================================================
+# HEALTH CHECK & MONITORING
+# ============================================================================
+
+
+# ============================================================================
+# METRICS ENDPOINT
+# ============================================================================
+
+@app.get("/metrics")
+async def prometheus_metrics():
+    """Prometheus-style metrics für Monitoring"""
+    import sqlite3
+    
+    conn = sqlite3.connect("/var/www/contract-app/data/contracts.db")
+    
+    # Zähle Verträge
+    contracts_total = conn.execute("SELECT COUNT(*) FROM contracts").fetchone()[0]
+    contracts_today = conn.execute(
+        "SELECT COUNT(*) FROM contracts WHERE date(created_at) = date('now')"
+    ).fetchone()[0]
+    
+    # Zähle User
+    users_total = conn.execute("SELECT COUNT(DISTINCT user_email) FROM user_settings").fetchone()[0]
+    
+    # Usage Stats
+    analyses_today = conn.execute(
+        "SELECT COUNT(*) FROM usage_events WHERE event_type='analysis' AND date(created_at) = date('now')"
+    ).fetchone()[0]
+    
+    conn.close()
+    
+    metrics_text = f"""# HELP sbs_contracts_total Total contracts analyzed
+# TYPE sbs_contracts_total counter
+sbs_contracts_total {contracts_total}
+
+# HELP sbs_contracts_today Contracts analyzed today
+# TYPE sbs_contracts_today gauge
+sbs_contracts_today {contracts_today}
+
+# HELP sbs_users_total Total registered users
+# TYPE sbs_users_total counter
+sbs_users_total {users_total}
+
+# HELP sbs_analyses_today Analyses performed today
+# TYPE sbs_analyses_today gauge
+sbs_analyses_today {analyses_today}
+"""
+    from fastapi.responses import PlainTextResponse
+    return PlainTextResponse(metrics_text, media_type="text/plain")
