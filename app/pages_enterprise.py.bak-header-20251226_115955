@@ -89,64 +89,6 @@ header {
 .header-nav a:hover { background: rgba(0,56,86,0.05); color: var(--sbs-blue); }
 .header-nav a.active { color: var(--sbs-blue); background: rgba(0,56,86,0.08); }
 
-/* Home Button */
-.home-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  color: var(--sbs-blue);
-  background: rgba(0,56,86,0.08);
-  margin-right: 12px;
-  transition: all 0.2s;
-}
-.home-btn:hover { background: rgba(0,56,86,0.15); transform: scale(1.05); }
-
-/* App Switcher */
-.app-switcher-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  border: none;
-  background: transparent;
-  color: #64748b;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.app-switcher-btn:hover { background: rgba(0,56,86,0.08); color: var(--sbs-blue); }
-
-.app-switcher-menu { width: 320px; }
-
-.app-item {
-  display: flex !important;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px !important;
-}
-.app-item:hover { background: rgba(0,56,86,0.05); }
-.app-item.active-app { background: rgba(255,185,0,0.1); border-left: 3px solid var(--sbs-yellow); }
-
-.app-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  color: white;
-  flex-shrink: 0;
-}
-
-.app-info { display: flex; flex-direction: column; }
-.app-info strong { font-size: 14px; color: #1e293b; }
-.app-info small { font-size: 12px; color: #64748b; }
-
 .dropdown { position: relative; }
 
 .dropdown-toggle {
@@ -333,21 +275,12 @@ footer { background: var(--sbs-blue-dark); color: #fff; margin-top: auto; }
 
 
 def get_header(user_name: str = "User", active: str = ""):
-    """Enterprise Header mit Home-Button und App-Switcher."""
+    """Header exakt wie in der Upload-Page."""
     user_initial = user_name[0].upper() if user_name else "U"
     
     return f'''
 <header>
   <div class="header-container">
-    <!-- Home Button -->
-    <a href="https://app.sbsdeutschland.com/dashboard" class="home-btn" title="Dashboard">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-        <polyline points="9 22 9 12 15 12 15 22"></polyline>
-      </svg>
-    </a>
-    
-    <!-- Logo -->
     <a href="/" class="header-logo">
       <img src="/static/sbs-logo-new.png" alt="SBS Logo">
       <div class="header-logo-text">
@@ -355,7 +288,6 @@ def get_header(user_name: str = "User", active: str = ""):
         <span class="subtitle">Smart Business Service · Weinheim</span>
       </div>
     </a>
-    
     <nav class="header-nav">
       <a href="/upload" class="{"active" if active == "analyse" else ""}">Analyse</a>
       <a href="/history" class="{"active" if active == "verlauf" else ""}">Verlauf</a>
@@ -368,62 +300,16 @@ def get_header(user_name: str = "User", active: str = ""):
         </button>
         <div class="dropdown-menu">
           <div class="dropdown-section">
-            <a href="/copilot" class="dropdown-item"><span class="icon">🤖</span> Contract Copilot</a>
-            <a href="/deadlines" class="dropdown-item"><span class="icon">⏰</span> Fristen-Übersicht</a>
             <a href="/compare" class="dropdown-item"><span class="icon">⚖️</span> Vertragsvergleich</a>
             <a href="/library" class="dropdown-item"><span class="icon">📚</span> Klausel-Bibliothek</a>
             <a href="/exports" class="dropdown-item"><span class="icon">📥</span> Export-Historie</a>
           </div>
-        </div>
-      </div>
-      
-      <!-- App Switcher (Waffle) -->
-      <div class="dropdown">
-        <button class="app-switcher-btn" title="Apps wechseln">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-            <circle cx="5" cy="5" r="2.5"/>
-            <circle cx="12" cy="5" r="2.5"/>
-            <circle cx="19" cy="5" r="2.5"/>
-            <circle cx="5" cy="12" r="2.5"/>
-            <circle cx="12" cy="12" r="2.5"/>
-            <circle cx="19" cy="12" r="2.5"/>
-            <circle cx="5" cy="19" r="2.5"/>
-            <circle cx="12" cy="19" r="2.5"/>
-            <circle cx="19" cy="19" r="2.5"/>
-          </svg>
-        </button>
-        <div class="dropdown-menu app-switcher-menu">
           <div class="dropdown-section">
-            <div class="dropdown-label">SBS Plattform</div>
-            <a href="https://app.sbsdeutschland.com/dashboard" class="dropdown-item app-item">
-              <span class="app-icon" style="background:linear-gradient(135deg,#003856,#004d73);">🏠</span>
-              <div class="app-info">
-                <strong>Dashboard</strong>
-                <small>Übersicht & Kennzahlen</small>
-              </div>
-            </a>
-          </div>
-          <div class="dropdown-section">
-            <div class="dropdown-label">Produkte</div>
-            <a href="https://app.sbsdeutschland.com" class="dropdown-item app-item">
-              <span class="app-icon" style="background:linear-gradient(135deg,#22c55e,#16a34a);">📄</span>
-              <div class="app-info">
-                <strong>KI-Rechnungen</strong>
-                <small>Rechnungsverarbeitung</small>
-              </div>
-            </a>
-            <a href="https://contract.sbsdeutschland.com" class="dropdown-item app-item active-app">
-              <span class="app-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706);">📋</span>
-              <div class="app-info">
-                <strong>KI-Verträge</strong>
-                <small>Vertragsanalyse</small>
-              </div>
-            </a>
+            <a href="https://app.sbsdeutschland.com" class="dropdown-item cross-link"><span class="icon">📄</span> → KI-Rechnungen</a>
           </div>
         </div>
       </div>
       
-      <!-- User Menu -->
       <div class="dropdown">
         <button class="user-btn">
           <div class="user-avatar">{user_initial}</div>
@@ -441,12 +327,15 @@ def get_header(user_name: str = "User", active: str = ""):
           <div class="dropdown-section">
             <div class="dropdown-label">Konto</div>
             <a href="/settings" class="dropdown-item"><span class="icon">⚙️</span> Einstellungen</a>
-            <a href="/security" class="dropdown-item"><span class="icon">🔐</span> Sicherheit</a>
             <a href="/billing" class="dropdown-item"><span class="icon">💳</span> Abrechnung</a>
             <a href="/team" class="dropdown-item"><span class="icon">👥</span> Team</a>
             <a href="/audit" class="dropdown-item"><span class="icon">📋</span> Audit-Log</a>
             <div style="border-top:1px solid #e2e8f0;margin:8px 0;"></div>
             <a href="/logout" class="dropdown-item" style="color:#dc2626;"><span class="icon">🚪</span> Abmelden</a>
+          </div>
+          <div class="dropdown-section">
+            <div class="dropdown-label">Apps</div>
+            <a href="https://app.sbsdeutschland.com" class="dropdown-item cross-link"><span class="icon">📄</span> → KI-Rechnungen</a>
           </div>
         </div>
       </div>
@@ -489,7 +378,6 @@ def get_footer():
         <h4>Konto</h4>
         <ul>
           <li><a href="/settings">Einstellungen</a></li>
-          <li><a href="/security">Sicherheit</a></li>
           <li><a href="/billing">Abrechnung</a></li>
           <li><a href="/team">Team</a></li>
           <li><a href="/exports">Export-Historie</a></li>
@@ -659,15 +547,9 @@ def get_settings_page(user_name: str = "User", user_email: str = "user@sbsdeutsc
     
     api_key_html = ""
     if settings.get('api_key'):
-        api_key_html = f'''<div id="apiKeyDisplay" style="background:#1e293b;border-radius:10px;padding:12px 16px;margin-top:12px;display:flex;align-items:center;gap:12px;">
-          <code style="color:#22d3ee;word-break:break-all;flex:1;" id="apiKeyCode">{settings["api_key"]}</code>
-          <button onclick="copyApiKey()" style="background:#334155;border:none;color:white;padding:8px 12px;border-radius:6px;cursor:pointer;" title="Kopieren">📋</button>
-        </div>
-        <button class="btn btn-danger" style="margin-top:12px;" onclick="revokeApiKey()">Widerrufen</button>'''
+        api_key_html = f'<div style="background:#1e293b;border-radius:10px;padding:12px 16px;margin-top:12px;"><code style="color:#22d3ee;word-break:break-all;">{settings["api_key"][:20]}...{settings["api_key"][-8:]}</code></div><button class="btn btn-danger" style="margin-top:12px;" onclick="alert(\'API-Key widerrufen\')">Widerrufen</button>'
     else:
-        api_key_html = '''<p style="color:var(--sbs-muted);margin-bottom:12px;">Noch kein API-Key generiert.</p>
-        <button class="btn btn-primary" onclick="generateApiKey()" id="generateKeyBtn">API-Key generieren</button>
-        <div id="newKeyDisplay" style="display:none;margin-top:12px;"></div>'''
+        api_key_html = '<p style="color:var(--sbs-muted);margin-bottom:12px;">Noch kein API-Key generiert.</p><button class="btn btn-primary" onclick="alert(\'API-Key generieren\')">API-Key generieren</button>'
     
     email_checked = 'checked' if settings.get('notification_email') else ''
     slack_checked = 'checked' if settings.get('notification_slack') else ''
@@ -722,11 +604,11 @@ input:checked + .toggle-slider:before {{ transform: translateX(24px); }}
     <div class="content-card-body" style="padding:0 24px;">
       <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 0;border-bottom:1px solid #e2e8f0;">
         <div><strong style="display:block;">E-Mail Benachrichtigungen</strong><small style="color:var(--sbs-muted);">Updates zu Ihren Verträgen per E-Mail</small></div>
-        <label class="toggle-switch"><input type="checkbox" {email_checked} onchange="saveNotifications('email', this.checked)"><span class="toggle-slider"></span></label>
+        <label class="toggle-switch"><input type="checkbox" {email_checked}><span class="toggle-slider"></span></label>
       </div>
       <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 0;">
         <div><strong style="display:block;">Slack Integration</strong><small style="color:var(--sbs-muted);">Benachrichtigungen an Slack senden</small></div>
-        <label class="toggle-switch"><input type="checkbox" {slack_checked} onchange="saveNotifications('slack', this.checked)"><span class="toggle-slider"></span></label>
+        <label class="toggle-switch"><input type="checkbox" {slack_checked}><span class="toggle-slider"></span></label>
       </div>
     </div>
   </div>
@@ -756,64 +638,6 @@ function showToast(msg, type) {{
   t.innerHTML = (type==='success'?'✅ ':'❌ ') + msg;
   t.className = 'toast show';
   setTimeout(function(){{ t.className='toast'; }}, 3000);
-}}
-
-function copyApiKey() {{
-  var code = document.getElementById('apiKeyCode');
-  if (code) {{
-    navigator.clipboard.writeText(code.textContent);
-    showToast('API-Key kopiert!', 'success');
-  }}
-}}
-
-function generateApiKey() {{
-  var btn = document.getElementById('generateKeyBtn');
-  btn.disabled = true;
-  btn.textContent = 'Generiere...';
-  
-  fetch('/api/settings/generate-key', {{ method: 'POST' }})
-    .then(r => r.json())
-    .then(function(data) {{
-      if (data.success) {{
-        var display = document.getElementById('newKeyDisplay');
-        display.style.display = 'block';
-        display.innerHTML = '<div style="background:#1e293b;border-radius:10px;padding:12px 16px;"><code style="color:#22d3ee;word-break:break-all;">' + data.api_key + '</code></div><p style="color:#22c55e;margin-top:8px;">✅ API-Key generiert! Seite neu laden um ihn zu sehen.</p>';
-        btn.style.display = 'none';
-        showToast('API-Key erfolgreich generiert!', 'success');
-      }} else {{
-        showToast(data.error || 'Fehler beim Generieren', 'error');
-        btn.disabled = false;
-        btn.textContent = 'API-Key generieren';
-      }}
-    }});
-}}
-
-function revokeApiKey() {{
-  if (!confirm('API-Key wirklich widerrufen? Alle Integrationen werden damit ungültig.')) return;
-  
-  fetch('/api/settings/revoke-key', {{ method: 'POST' }})
-    .then(r => r.json())
-    .then(function(data) {{
-      if (data.success) {{
-        showToast('API-Key widerrufen!', 'success');
-        setTimeout(function() {{ location.reload(); }}, 1000);
-      }} else {{
-        showToast(data.error || 'Fehler', 'error');
-      }}
-    }});
-}}
-
-function saveNotifications(type, value) {{
-  var fd = new FormData();
-  fd.append('notification_' + type, value);
-  
-  fetch('/api/settings/notifications', {{ method: 'POST', body: fd }})
-    .then(r => r.json())
-    .then(function(data) {{
-      if (data.success) {{
-        showToast(type === 'email' ? 'E-Mail-Benachrichtigungen aktualisiert' : 'Slack-Integration aktualisiert', 'success');
-      }}
-    }});
 }}
 
 function changePassword(e) {{
@@ -846,27 +670,10 @@ function changePassword(e) {{
     return page_wrapper("Einstellungen", content, user_name, "settings")
 
 
-def get_billing_page(user_name: str = "User", is_admin: bool = False, user_email: str = None):
+def get_billing_page(user_name: str = "User", is_admin: bool = False):
     sub = get_subscription() or {}
+    usage = get_current_usage()
     history = get_billing_history()
-    
-    # Echte Usage-Daten aus Tracking-System
-    try:
-        from .usage_tracking import get_usage_with_limits
-        real_usage = get_usage_with_limits(user_email or "anonymous")
-        usage = {
-            "contracts_analyzed": real_usage["usage"]["analyses_count"],
-            "max_contracts": real_usage["plan"]["analyses_per_month"] if real_usage["plan"]["analyses_per_month"] != -1 else "∞",
-            "usage_percent": real_usage["limits"]["analyses"]["percentage"],
-            "copilot_queries": real_usage["usage"]["copilot_queries"],
-            "max_copilot": real_usage["plan"]["copilot_queries_per_month"] if real_usage["plan"]["copilot_queries_per_month"] != -1 else "∞",
-            "copilot_percent": real_usage["limits"]["copilot"]["percentage"],
-            "plan_name": real_usage["plan"]["name"],
-            "plan_price": real_usage["plan"]["price"]
-        }
-    except Exception as e:
-        print(f"Usage error: {e}")
-        usage = get_current_usage()
     
     # Admin sieht Enterprise-Plan ohne Kosten
     if is_admin:
@@ -895,7 +702,7 @@ def get_billing_page(user_name: str = "User", is_admin: bool = False, user_email
           <div style="font-size:2.5rem;font-weight:700;">{price:.0f}€ <span style="font-size:1rem;font-weight:400;opacity:0.8;">/ Monat</span></div>
           <p style="opacity:0.8;margin:8px 0 0;">Nächste Abrechnung: {period_end}</p>
           <div style="margin-top:24px;display:flex;gap:12px;">
-            <a href="https://sbsdeutschland.com/loesungen/vertragsanalyse/preise.html" class="btn" style="background:white;color:var(--sbs-blue);text-decoration:none;">Plan ändern</a>
+            <button class="btn" style="background:white;color:var(--sbs-blue);">Plan ändern</button>
             <button class="btn btn-secondary" style="background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.3);">Kündigen</button>
           </div>
         </div>
@@ -993,7 +800,7 @@ def get_team_page(user_name: str = "User"):
     <div class="stat-card"><div class="stat-value">{stats['available']}</div><div class="stat-label">Verfügbar</div></div>
   </div>
   <div class="content-card">
-    <div class="content-card-header"><h3 class="content-card-title">Teammitglieder</h3><button class="btn btn-primary" onclick="openInviteModal()">+ Einladen</button></div>
+    <div class="content-card-header"><h3 class="content-card-title">Teammitglieder</h3><button class="btn btn-primary" onclick="alert('Team einladen - Coming soon')">+ Einladen</button></div>
     <div class="content-card-body" style="padding:0;">
       <table class="data-table">
         <thead><tr><th>Mitglied</th><th>Rolle</th><th>Status</th><th>Aktivität</th><th>Aktion</th></tr></thead>
@@ -1002,43 +809,7 @@ def get_team_page(user_name: str = "User"):
     </div>
   </div>
 </div>"""
-    
-    # Modal HTML (außerhalb f-string)
-    modal_html = """
-<!-- Einladen Modal -->
-<div id="inviteModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
-  <div style="background:white;border-radius:16px;padding:32px;max-width:450px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
-    <h3 style="margin:0 0 24px;color:#1e293b;">👥 Teammitglied einladen</h3>
-    <div style="margin-bottom:16px;">
-      <label style="display:block;font-weight:600;margin-bottom:6px;color:#475569;">Name</label>
-      <input type="text" id="inviteName" placeholder="Max Mustermann" style="width:100%;padding:12px;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;">
-    </div>
-    <div style="margin-bottom:16px;">
-      <label style="display:block;font-weight:600;margin-bottom:6px;color:#475569;">E-Mail</label>
-      <input type="email" id="inviteEmail" placeholder="max@firma.de" style="width:100%;padding:12px;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;">
-    </div>
-    <div style="margin-bottom:24px;">
-      <label style="display:block;font-weight:600;margin-bottom:6px;color:#475569;">Rolle</label>
-      <select id="inviteRole" style="width:100%;padding:12px;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;">
-        <option value="viewer">Viewer - Nur lesen</option>
-        <option value="editor">Editor - Bearbeiten</option>
-        <option value="admin">Admin - Vollzugriff</option>
-      </select>
-    </div>
-    <div style="display:flex;gap:12px;">
-      <button onclick="closeInviteModal()" style="flex:1;padding:12px;border:1px solid #e2e8f0;background:white;border-radius:8px;cursor:pointer;font-weight:600;">Abbrechen</button>
-      <button onclick="sendInvite()" style="flex:1;padding:12px;border:none;background:#003856;color:white;border-radius:8px;cursor:pointer;font-weight:600;">Einladen</button>
-    </div>
-  </div>
-</div>
-<script>
-function openInviteModal(){document.getElementById('inviteModal').style.display='flex';}
-function closeInviteModal(){document.getElementById('inviteModal').style.display='none';document.getElementById('inviteName').value='';document.getElementById('inviteEmail').value='';}
-function sendInvite(){var n=document.getElementById('inviteName').value,e=document.getElementById('inviteEmail').value,r=document.getElementById('inviteRole').value;if(!n||!e){alert('Bitte Name und E-Mail eingeben');return;}var fd=new FormData();fd.append('name',n);fd.append('email',e);fd.append('role',r);fetch('/api/team/invite',{method:'POST',body:fd}).then(function(r){return r.json();}).then(function(d){if(d.success){alert('Einladung gesendet');closeInviteModal();location.reload();}else{alert(d.error||'Fehler');}});}
-document.getElementById('inviteModal').onclick=function(e){if(e.target===this)closeInviteModal();};
-</script>
-"""
-    return page_wrapper("Team", content + modal_html, user_name, "settings")
+    return page_wrapper("Team", content, user_name, "settings")
 
 
 def get_audit_page(user_name: str = "User"):

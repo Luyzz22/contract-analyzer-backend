@@ -1853,3 +1853,157 @@ async def pricing_page(request: Request):
     """Redirect zur Hauptseite Preisseite"""
     from fastapi.responses import RedirectResponse
     return RedirectResponse("https://sbsdeutschland.com/loesungen/vertragsanalyse/preise.html")
+
+# ============================================================================
+# 2FA / TOTP AUTHENTICATION
+# ============================================================================
+
+@app.get("/api/2fa/status")
+async def get_2fa_status(request: Request):
+    """Holt 2FA Status des Users"""
+    user = get_user_info(request)
+    email = user.get("email")
+    if not email:
+        return {"error": "Nicht eingeloggt"}
+    
+    from .two_factor_auth import get_2fa_status
+    return get_2fa_status(email)
+
+@app.post("/api/2fa/setup")
+async def setup_2fa(request: Request):
+    """Startet 2FA Setup - generiert Secret und QR Code"""
+    user = get_user_info(request)
+    email = user.get("email")
+    if not email:
+        return {"error": "Nicht eingeloggt"}
+    
+    from .two_factor_auth import generate_totp_secret
+    return generate_totp_secret(email)
+
+@app.post("/api/2fa/enable")
+async def enable_2fa(request: Request):
+    """Aktiviert 2FA nach Code-Verifikation"""
+    user = get_user_info(request)
+    email = user.get("email")
+    if not email:
+        return {"error": "Nicht eingeloggt"}
+    
+    body = await request.json()
+    code = body.get("code", "")
+    
+    from .two_factor_auth import enable_2fa as do_enable
+    result = do_enable(email, code)
+    
+    if result.get("success"):
+        from .enterprise_features import log_audit
+        log_audit(email, "2fa_enabled", "security", None, "2FA aktiviert", None, request.client.host)
+    
+    return result
+
+@app.post("/api/2fa/verify")
+async def verify_2fa(request: Request):
+    """Verifiziert 2FA Code"""
+    user = get_user_info(request)
+    email = user.get("email")
+    if not email:
+        return {"error": "Nicht eingeloggt"}
+    
+    body = await request.json()
+    code = body.get("code", "")
+    
+    from .two_factor_auth import verify_totp
+    return verify_totp(email, code, request.client.host)
+
+@app.post("/api/2fa/disable")
+async def disable_2fa(request: Request):
+    """Deaktiviert 2FA"""
+    user = get_user_info(request)
+    email = user.get("email")
+    if not email:
+        return {"error": "Nicht eingeloggt"}
+    
+    body = await request.json()
+    code = body.get("code", "")
+    
+    from .two_factor_auth import disable_2fa as do_disable
+    result = do_disable(email, code)
+    
+    if result.get("success"):
+        from .enterprise_features import log_audit
+        log_audit(email, "2fa_disabled", "security", None, "2FA deaktiviert", None, request.client.host)
+    
+    return result
+
+@app.post("/api/2fa/backup-codes")
+async def regenerate_backup_codes(request: Request):
+    """Generiert neue Backup Codes"""
+    user = get_user_info(request)
+    email = user.get("email")
+    if not email:
+        return {"error": "Nicht eingeloggt"}
+    
+    body = await request.json()
+    code = body.get("code", "")
+    
+    from .two_factor_auth import regenerate_backup_codes
+    return regenerate_backup_codes(email, code)
+
+@app.get("/security", response_class=HTMLResponse)
+async def security_page(request: Request):
+    """Security Settings Seite mit 2FA"""
+    user = get_user_info(request)
+    from .security_page import get_security_page
+    return get_security_page(user.get("name", "User"), user.get("email"))
+
+# ============================================================================
+# ONBOARDING
+# ============================================================================
+
+@app.get("/onboarding", response_class=HTMLResponse)
+async def onboarding_page(request: Request):
+    """Onboarding Wizard fuer neue User"""
+    user = get_user_info(request)
+    from .onboarding import get_onboarding_page
+    return get_onboarding_page(user.get("name", "User"), user.get("email"))
+
+@app.post("/api/onboarding/complete")
+async def complete_onboarding(request: Request):
+    """Markiert Onboarding als abgeschlossen"""
+    user = get_user_info(request)
+    email = user.get("email")
+    if not email:
+        return {"success": False}
+    
+    # Speichere in DB
+    conn = get_db_connection()
+    conn.execute("""
+        INSERT INTO user_settings (user_email, onboarding_completed, onboarding_completed_at)
+        VALUES (?, 1, CURRENT_TIMESTAMP)
+        ON CONFLICT(user_email) DO UPDATE SET
+            onboarding_completed = 1,
+            onboarding_completed_at = CURRENT_TIMESTAMP
+    """, (email,))
+    conn.commit()
+    conn.close()
+    
+    from .enterprise_features import log_audit
+    log_audit(email, "onboarding_completed", "user", None, "Onboarding abgeschlossen", None, request.client.host)
+    
+    return {"success": True}
+
+@app.get("/api/onboarding/status")
+async def onboarding_status(request: Request):
+    """Prueft ob User Onboarding abgeschlossen hat"""
+    user = get_user_info(request)
+    email = user.get("email")
+    if not email:
+        return {"completed": False}
+    
+    conn = get_db_connection()
+    row = conn.execute(
+        "SELECT onboarding_completed FROM user_settings WHERE user_email = ?",
+        (email,)
+    ).fetchone()
+    conn.close()
+    
+    return {"completed": bool(row and row[0])}
