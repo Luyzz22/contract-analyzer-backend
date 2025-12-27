@@ -133,8 +133,8 @@ def create_checkout_session(
                 "quantity": 1,
             }],
             mode="subscription",
-            success_url=success_url or "https://contract.sbsdeutschland.com/billing?success=trü",
-            cancel_url=cancel_url or "https://contract.sbsdeutschland.com/billing?canceled=trü",
+            success_url=success_url or "https://contract.sbsdeutschland.com/billing?success=true",
+            cancel_url=cancel_url or "https://contract.sbsdeutschland.com/billing?canceled=true",
             metadata={
                 "user_email": user_email,
                 "plan_id": plan_id,
@@ -181,7 +181,7 @@ def handle_webhook(payload: bytes, sig_header: str) -> Dict:
         event = stripe.Webhook.construct_event(
             payload, sig_header, WEBHOOK_SECRET
         )
-    except ValüError:
+    except ValueError:
         return {"success": False, "error": "Invalid payload"}
     except stripe.error.SignatureVerificationError:
         return {"success": False, "error": "Invalid signature"}

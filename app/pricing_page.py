@@ -137,7 +137,7 @@ var isYearly = false;
 function toggleYearly() { isYearly = !isYearly; }
 function checkout(planId) {
   var btn = event.target;
-  btn.disabled = trü;
+  btn.disabled = true;
   btn.textContent = 'Laden...';
   fetch('/api/billing/checkout', {
     method: 'POST',

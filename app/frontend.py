@@ -33,9 +33,9 @@ SBS_CSS = '''
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 
 :root {
-  --sbs-blü: #003856;
-  --sbs-blü-dark: #002a42;
-  --sbs-blü-light: #00507a;
+  --sbs-blue: #003856;
+  --sbs-blue-dark: #002a42;
+  --sbs-blue-light: #00507a;
   --sbs-yellow: #FFB900;
   --sbs-bg: #f4f7fa;
   --sbs-text: #111827;
@@ -105,7 +105,7 @@ header {
 .header-logo-text .brand {
   font-size: 15px;
   font-weight: 600;
-  color: var(--sbs-blü);
+  color: var(--sbs-blue);
 }
 
 .header-logo-text .subtitle {
@@ -131,7 +131,7 @@ header {
 
 .header-nav a:hover {
   background: rgba(0,56,86,0.05);
-  color: var(--sbs-blü);
+  color: var(--sbs-blue);
 }
 
 .header-nav a.active {
@@ -167,7 +167,7 @@ header {
 }
 .app-switcher-btn:hover { background: rgba(0,56,86,0.08); color: var(--primary); }
 .app-item { display: flex !important; align-items: center; gap: 12px; padding: 10px 16px !important; }
-  color: var(--sbs-blü);
+  color: var(--sbs-blue);
 
 /* Home Button */
 .home-btn {
@@ -289,7 +289,7 @@ header {
 
 .dropdown-toggle:hover {
   background: rgba(0,56,86,0.05);
-  color: var(--sbs-blü);
+  color: var(--sbs-blue);
 }
 
 .dropdown-toggle svg {
@@ -358,7 +358,7 @@ header {
 
 .dropdown-item:hover {
   background: rgba(0,56,86,0.05);
-  color: var(--sbs-blü);
+  color: var(--sbs-blue);
 }
 
 .dropdown-item .icon {
@@ -397,7 +397,7 @@ header {
 .user-avatar {
   width: 32px;
   height: 32px;
-  background: var(--sbs-blü);
+  background: var(--sbs-blue);
   color: #fff;
   border-radius: 50%;
   display: flex;
@@ -434,7 +434,7 @@ main {
 
 /* Hero Section - Dark Gradient */
 .hero {
-  background: linear-gradient(135deg, var(--sbs-blü) 0%, var(--sbs-blü-dark) 100%);
+  background: linear-gradient(135deg, var(--sbs-blue) 0%, var(--sbs-blue-dark) 100%);
   color: #fff;
   padding: 48px 24px;
 }
@@ -501,7 +501,7 @@ main {
 }
 
 .upload-zone:hover {
-  border-color: var(--sbs-blü);
+  border-color: var(--sbs-blue);
   background: rgba(0,56,86,0.02);
 }
 
@@ -573,7 +573,7 @@ main {
 }
 
 .type-btn:hover {
-  border-color: var(--sbs-blü);
+  border-color: var(--sbs-blue);
   background: rgba(0,56,86,0.02);
 }
 
@@ -604,11 +604,11 @@ main {
 
 .btn-primary {
   background: var(--sbs-yellow);
-  color: var(--sbs-blü);
+  color: var(--sbs-blue);
 }
 
 .btn-primary:hover {
-  background: var(--sbs-blü);
+  background: var(--sbs-blue);
   color: #fff;
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(0,56,86,0.25);
@@ -698,7 +698,7 @@ main {
    FOOTER - Exakt wie Invoice App (dunkelblau)
    ============================================ */
 footer {
-  background: var(--sbs-blü-dark);
+  background: var(--sbs-blue-dark);
   color: #fff;
   margin-top: auto;
 }
@@ -896,7 +896,7 @@ footer {
 
 .tab.active {
   background: #fff;
-  color: var(--sbs-blü);
+  color: var(--sbs-blue);
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 
@@ -928,7 +928,7 @@ footer {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--sbs-blü);
+  color: var(--sbs-blue);
   margin-bottom: 16px;
   padding-bottom: 12px;
   border-bottom: 1px solid var(--sbs-border);
@@ -1022,7 +1022,7 @@ footer {
 
 .risk-clause:hover {
   background: rgba(0,56,86,0.04);
-  border-left-color: var(--sbs-blü);
+  border-left-color: var(--sbs-blue);
 }
 
 .risk-legal {
@@ -1031,7 +1031,7 @@ footer {
   padding: 8px 14px;
   background: rgba(0,56,86,0.06);
   border-radius: 6px;
-  color: var(--sbs-blü);
+  color: var(--sbs-blue);
   margin-bottom: 16px;
 }
 
@@ -1073,20 +1073,20 @@ footer {
 }
 
 .export-btn:hover {
-  border-color: var(--sbs-blü);
+  border-color: var(--sbs-blue);
   background: rgba(0,56,86,0.02);
 }
 
 .export-btn.primary {
   background: var(--sbs-yellow);
-  color: var(--sbs-blü);
+  color: var(--sbs-blue);
   border-color: var(--sbs-yellow);
 }
 
 .export-btn.primary:hover {
-  background: var(--sbs-blü);
+  background: var(--sbs-blue);
   color: #fff;
-  border-color: var(--sbs-blü);
+  border-color: var(--sbs-blue);
 }
 
 /* Loading */
@@ -1099,7 +1099,7 @@ footer {
   width: 48px;
   height: 48px;
   border: 3px solid var(--sbs-border);
-  border-top-color: var(--sbs-blü);
+  border-top-color: var(--sbs-blue);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto 20px;
@@ -1139,7 +1139,7 @@ footer {
 }
 
 .chat-header {
-  background: linear-gradient(135deg, var(--sbs-blü), var(--sbs-blü-dark));
+  background: linear-gradient(135deg, var(--sbs-blue), var(--sbs-blue-dark));
   color: #fff;
   padding: 20px 24px;
   display: flex;
@@ -1183,7 +1183,7 @@ footer {
   padding: 24px;
   border-radius: 12px;
   margin-bottom: 24px;
-  border-left: 4px solid var(--sbs-blü);
+  border-left: 4px solid var(--sbs-blue);
 }
 
 .summary-box h3 {
@@ -1225,17 +1225,17 @@ footer {
 .explain-btn {
   padding: 8px 14px;
   background: #fff;
-  border: 1px solid var(--sbs-blü);
+  border: 1px solid var(--sbs-blue);
   border-radius: 6px;
   font-size: 13px;
   font-weight: 500;
-  color: var(--sbs-blü);
+  color: var(--sbs-blue);
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .explain-btn:hover {
-  background: var(--sbs-blü);
+  background: var(--sbs-blue);
   color: #fff;
 }
 </style>
@@ -1657,7 +1657,7 @@ def get_upload_page():
       input.value = '';
       info.classList.remove('show');
       zone.classList.remove('has-file');
-      analyzeBtn.disabled = trü;
+      analyzeBtn.disabled = true;
     }}
     
     // Type selection
@@ -1673,7 +1673,7 @@ def get_upload_page():
     analyzeBtn.onclick = async () => {{
       if (!selectedFile) return;
       
-      analyzeBtn.disabled = trü;
+      analyzeBtn.disabled = true;
       result.innerHTML = `
         <div class="card result-card">
           <div class="loading">
@@ -1898,7 +1898,7 @@ def get_upload_page():
       
       modal.classList.add('show');
       body.innerHTML = `
-        <div style="background: #f8fafc; padding: 16px; border-radius: 8px; border-left: 4px solid var(--sbs-blü); margin-bottom: 20px; font-style: italic;">"${{clauseText}}"</div>
+        <div style="background: #f8fafc; padding: 16px; border-radius: 8px; border-left: 4px solid var(--sbs-blue); margin-bottom: 20px; font-style: italic;">"${{clauseText}}"</div>
         <div class="loading">
           <div class="spinner"></div>
           <p>KI analysiert...</p>
@@ -1922,7 +1922,7 @@ def get_upload_page():
         }};
         
         body.innerHTML = `
-          <div style="background: #f8fafc; padding: 16px; border-radius: 8px; border-left: 4px solid var(--sbs-blü); margin-bottom: 20px; font-style: italic;">"${{clauseText}}"</div>
+          <div style="background: #f8fafc; padding: 16px; border-radius: 8px; border-left: 4px solid var(--sbs-blue); margin-bottom: 20px; font-style: italic;">"${{clauseText}}"</div>
           <span class="risk-badge ${{data.risk_level}}" style="margin-bottom: 16px;">${{riskLabels[data.risk_level] || data.risk_level}}</span>
           <div style="margin-top: 20px;">
             <h4 style="font-size: 13px; color: var(--sbs-muted); margin-bottom: 8px;">Was bedeutet das?</h4>
@@ -1948,7 +1948,7 @@ def get_upload_page():
       }})
       .catch(error => {{
         body.innerHTML = `
-          <div style="background: #f8fafc; padding: 16px; border-radius: 8px; border-left: 4px solid var(--sbs-blü); margin-bottom: 20px; font-style: italic;">"${{clauseText}}"</div>
+          <div style="background: #f8fafc; padding: 16px; border-radius: 8px; border-left: 4px solid var(--sbs-blue); margin-bottom: 20px; font-style: italic;">"${{clauseText}}"</div>
           <div style="text-align: center; color: var(--sbs-danger); padding: 40px;">
             ❌ ${{error.message}}
           </div>
@@ -1982,7 +1982,7 @@ def get_landing_page():
   {SBS_CSS}
   <style>
     .landing-hero {{
-      background: linear-gradient(135deg, var(--sbs-blü) 0%, var(--sbs-blü-dark) 100%);
+      background: linear-gradient(135deg, var(--sbs-blue) 0%, var(--sbs-blue-dark) 100%);
       color: #fff;
       padding: 100px 24px;
       text-align: center;
@@ -2019,7 +2019,7 @@ def get_landing_page():
     .feature-card h3 {{
       font-size: 1.25rem;
       margin-bottom: 12px;
-      color: var(--sbs-blü);
+      color: var(--sbs-blue);
     }}
     .feature-card p {{
       color: var(--sbs-muted);
@@ -2277,7 +2277,7 @@ def get_analytics_page():
     .kpi-value {{
       font-size: 2.5rem;
       font-weight: 700;
-      color: var(--sbs-blü);
+      color: var(--sbs-blue);
     }}
     .kpi-value.critical {{
       color: var(--sbs-critical);

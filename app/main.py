@@ -422,7 +422,7 @@ async def analytics_page(request: Request):
             <span>{label}</span><span style="font-weight:600;">{count}</span>
           </div>
           <div style="background:var(--sbs-border);border-radius:4px;height:8px;">
-            <div style="background:var(--sbs-blü);border-radius:4px;height:100%;width:{width}%;"></div>
+            <div style="background:var(--sbs-blue);border-radius:4px;height:100%;width:{width}%;"></div>
           </div>
         </div>
         '''
@@ -691,7 +691,7 @@ async def contract_detail_page(contract_id: str, request: Request):
                     value = ", ".join([f"{p.get('name', 'N/A')}" for p in value])
                 else:
                     value = ", ".join(str(v) for v in value)
-            fields_html += f'<tr><td style="font-weight:500;color:var(--sbs-blü);">{label}</td><td>{value}</td></tr>'
+            fields_html += f'<tr><td style="font-weight:500;color:var(--sbs-blue);">{label}</td><td>{value}</td></tr>'
     
     # Risiken als HTML
     risks_html = ""
@@ -712,7 +712,7 @@ async def contract_detail_page(contract_id: str, request: Request):
         risks_html += f'''
         <div style="background:#fff;border-radius:12px;padding:20px;margin-bottom:16px;border-left:4px solid {r_color};">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-            <strong style="color:var(--sbs-blü);">{title}</strong>
+            <strong style="color:var(--sbs-blue);">{title}</strong>
             <span class="badge" style="background:{r_color}20;color:{r_color};">{r_label}</span>
           </div>
           <p style="color:var(--sbs-muted);margin-bottom:8px;">{desc}</p>
@@ -901,7 +901,7 @@ def get_clause_detail_page(user_name, clause, risk_color, risk_label, laws_html)
   <div class="content-card" style="margin-bottom:24px;">
     <div class="content-card-header"><h3 class="content-card-title">📄 Klauseltext</h3></div>
     <div class="content-card-body">
-      <p style="font-size:1.1rem;line-height:1.8;background:#f8fafc;padding:24px;border-radius:12px;border-left:4px solid var(--sbs-blü);">
+      <p style="font-size:1.1rem;line-height:1.8;background:#f8fafc;padding:24px;border-radius:12px;border-left:4px solid var(--sbs-blue);">
         „{clause["text"]}"
       </p>
     </div>
@@ -1386,7 +1386,7 @@ async def startup():
     # DB initialisieren
     _init_db()
     
-    dummy_mode = os.getenv("CONTRACT_ANALYZER_DUMMY", "trü").lower() == "trü"
+    dummy_mode = os.getenv("CONTRACT_ANALYZER_DUMMY", "true").lower() == "true"
     if dummy_mode:
         logger.warning("DUMMY MODE ENABLED")
     else:
@@ -1503,8 +1503,8 @@ async def api_save_notifications(request: Request):
         return {"success": False, "error": "Nicht eingeloggt"}
     
     form = await request.form()
-    email_notif = form.get("notification_email") == "trü"
-    slack_notif = form.get("notification_slack") == "trü"
+    email_notif = form.get("notification_email") == "true"
+    slack_notif = form.get("notification_slack") == "true"
     
     from .enterprise_features import update_user_settings
     result = update_user_settings(user["email"], notification_email=email_notif, notification_slack=slack_notif)
@@ -2023,3 +2023,61 @@ async def onboarding_status(request: Request):
     conn.close()
     
     return {"completed": bool(row and row[0])}
+
+# ============================================================================
+# MISSING API ENDPOINTS
+# ============================================================================
+
+@app.get("/api/team/members")
+async def get_team_members(request: Request):
+    """Holt Team-Mitglieder"""
+    user = get_user_info(request)
+    email = user.get("email")
+    if not email:
+        return {"members": [], "invitations": []}
+    
+    conn = get_db_connection()
+    
+    # Hole Team-Mitglieder (vereinfacht - zeigt nur den aktuellen User)
+    members = [{"email": email, "name": user.get("name", "User"), "role": "admin"}]
+    
+    # Hole Einladungen
+    invitations = conn.execute(
+        "SELECT invitee_email, role, status, created_at FROM team_invitations WHERE inviter_email = ?",
+        (email,)
+    ).fetchall()
+    conn.close()
+    
+    return {
+        "members": members,
+        "invitations": [dict(i) for i in invitations] if invitations else []
+    }
+
+@app.get("/api/audit/logs")
+async def get_audit_logs(request: Request, limit: int = 50, offset: int = 0):
+    """Holt Audit-Logs"""
+    user = get_user_info(request)
+    email = user.get("email")
+    if not email:
+        return {"logs": [], "total": 0}
+    
+    conn = get_db_connection()
+    
+    # Hole Logs
+    logs = conn.execute(
+        """SELECT action, category, resource_id, details, ip_address, created_at 
+           FROM audit_log WHERE user_email = ? 
+           ORDER BY created_at DESC LIMIT ? OFFSET ?""",
+        (email, limit, offset)
+    ).fetchall()
+    
+    total = conn.execute(
+        "SELECT COUNT(*) FROM audit_log WHERE user_email = ?", (email,)
+    ).fetchone()[0]
+    
+    conn.close()
+    
+    return {
+        "logs": [dict(l) for l in logs] if logs else [],
+        "total": total
+    }

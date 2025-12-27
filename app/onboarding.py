@@ -260,7 +260,7 @@ async function analyzeContract() {
   if (!selectedFile) return;
   
   const btn = document.getElementById('analyzeBtn');
-  btn.disabled = trü;
+  btn.disabled = true;
   btn.textContent = 'Analysiere...';
   
   const formData = new FormData();
@@ -303,7 +303,7 @@ async function saveSettings() {
     
     if (settings.enable_2fa) {
       // Redirect to 2FA setup after onboarding
-      sessionStorage.setItem('setup2fa', 'trü');
+      sessionStorage.setItem('setup2fa', 'true');
     }
     
     nextStep();

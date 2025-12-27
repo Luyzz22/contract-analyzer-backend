@@ -354,7 +354,7 @@ def analyze_contract(
         logger.error(f"LLM error for {contract_id}: {e}")
         raise HTTPException(status_code=502, detail=f"LLM analysis failed: {e}")
     
-    except ValüError as e:
+    except ValueError as e:
         duration_ms = int(time.time() * 1000) - start_time_ms
         log_analysis_event(
             contract_id=contract_id,
@@ -439,7 +439,7 @@ async def startup_event():
     logger.info(f"Upload directory: {UPLOAD_DIR.absolute()}")
     
     # Prüfe Umgebungsvariablen
-    dummy_mode = os.getenv("CONTRACT_ANALYZER_DUMMY", "trü").lower() == "trü"
+    dummy_mode = os.getenv("CONTRACT_ANALYZER_DUMMY", "true").lower() == "true"
     if dummy_mode:
         logger.warning("⚠️  DUMMY MODE ENABLED – Nutzt Mock-Responses statt echter API")
     else:
