@@ -317,7 +317,7 @@ function createConfetti() {
   const colors = ['#003856', '#FFB900', '#10b981', '#f59e0b', '#ec4899'];
   for (let i = 0; i < 50; i++) {
     const confetti = document.createElement('div');
-    confetti.style.cssText = \`
+    confetti.style.cssText = `
       position: fixed;
       width: 10px;
       height: 10px;
@@ -327,7 +327,7 @@ function createConfetti() {
       border-radius: 50%;
       animation: fall \${2 + Math.random() * 2}s linear forwards;
       z-index: 1000;
-    \`;
+    `;
     document.body.appendChild(confetti);
     setTimeout(() => confetti.remove(), 4000);
   }

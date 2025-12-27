@@ -732,6 +732,19 @@ input:checked + .toggle-slider:before {{ transform: translateX(24px); }}
   </div>
   
   <div class="content-card">
+  <div class="content-card">
+    <div class="content-card-header"><h3 class="content-card-title">🔐 Zwei-Faktor-Authentifizierung</h3></div>
+    <div class="content-card-body">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <strong style="display:block;">2FA Status</strong>
+          <small style="color:var(--sbs-muted);" id="2faStatusText">Laedt...</small>
+        </div>
+        <a href="/security" class="btn btn-primary">2FA verwalten</a>
+      </div>
+    </div>
+  </div>
+  
     <div class="content-card-header"><h3 class="content-card-title">🔑 API-Zugang</h3></div>
     <div class="content-card-body">
       <p style="margin-bottom:16px;">Nutzen Sie unsere REST API für die Integration in Ihre Systeme.</p>
@@ -842,6 +855,11 @@ function changePassword(e) {{
       }}
     }});
 }}
+// Load 2FA Status
+fetch("/api/2fa/status").then(r=>r.json()).then(function(data){{
+  var el = document.getElementById("2faStatusText");
+  if(el) el.textContent = data.enabled ? "Aktiviert" : "Nicht aktiviert";
+}});
 </script>"""
     return page_wrapper("Einstellungen", content, user_name, "settings")
 

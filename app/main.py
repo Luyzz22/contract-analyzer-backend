@@ -532,8 +532,24 @@ async def help_page():
     return get_help_page()
 
 @app.get("/dashboard", response_class=HTMLResponse)
-async def dashboard_page():
-    """CFO Dashboard"""
+async def dashboard_page(request: Request):
+    """CFO Dashboard mit Onboarding-Check"""
+    user = get_user_info(request)
+    email = user.get("email")
+    
+    # Check Onboarding - nur fuer neue User
+    if email:
+        try:
+            conn = get_db_connection()
+            row = conn.execute("SELECT onboarding_completed FROM user_settings WHERE user_email = ?", (email,)).fetchone()
+            conn.close()
+            # Redirect nur wenn User noch kein Onboarding gemacht hat
+            if not row:
+                from fastapi.responses import RedirectResponse
+                return RedirectResponse("/onboarding")
+        except:
+            pass
+    
     return get_dashboard()
 
 # Enterprise Pages mit User-Auth
