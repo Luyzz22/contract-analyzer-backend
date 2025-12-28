@@ -986,6 +986,21 @@ async def api_list_contracts(limit: int = 50):
 
 @app.post("/api/v3/contracts/upload")
 async def api_upload_contract(request: Request):
+    # LIMIT CHECK - Added by CFO Audit
+    user = get_user_info(request)
+    user_email = user.get("email")
+    if user_email:
+        from .usage_tracking import check_limit
+        limit_check = check_limit(user_email, "analysis")
+        if not limit_check.get("allowed", True):
+            raise HTTPException(
+                status_code=402,
+                detail={
+                    "error": "Plan-Limit erreicht",
+                    "message": limit_check.get("message", "Monatliches Analyse-Limit erreicht"),
+                    "upgrade_url": "/billing"
+                }
+            )
     """Upload Vertrag - Frontend Compatible"""
     form = await request.form()
     
@@ -1044,6 +1059,21 @@ async def api_upload_contract(request: Request):
 @app.post("/api/v3/contracts/{contract_id}/analyze")
 async def api_analyze_contract(contract_id: str, request: Request):
     """Analysiert Vertrag - mit echter LLM-Analyse"""
+    # LIMIT CHECK - Added by CFO Audit
+    user = get_user_info(request)
+    user_email = user.get("email")
+    if user_email:
+        from .usage_tracking import check_limit, track_event
+        limit_check = check_limit(user_email, "analysis")
+        if not limit_check.get("allowed", True):
+            raise HTTPException(
+                status_code=402,
+                detail={
+                    "error": "Plan-Limit erreicht",
+                    "message": limit_check.get("message", "Monatliches Analyse-Limit erreicht"),
+                    "upgrade_url": "/billing"
+                }
+            )
     
     # File finden
     upload_dir = _get_upload_dir()
@@ -1463,10 +1493,23 @@ async def change_password(request: Request):
 # API-Key generieren
 @app.post("/api/settings/generate-key")
 async def api_generate_key(request: Request):
-    """Generiert einen neuen API-Key für den User"""
+    """API-Key generieren - NUR ENTERPRISE"""
     user = get_user_info(request)
     if not user.get("email"):
         return {"success": False, "error": "Nicht eingeloggt"}
+    
+    # PLAN CHECK - API nur für Enterprise
+    from .usage_tracking import get_user_plan
+    plan = get_user_plan(user["email"])
+    if plan.get("plan_id") != "enterprise" and not user.get("is_admin", False):
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "error": "Enterprise-Feature",
+                "message": "API-Zugang ist nur im Enterprise-Plan verfügbar.",
+                "upgrade_url": "/billing"
+            }
+        )
     
     from .enterprise_features import generate_api_key
     api_key = generate_api_key(user["email"])
