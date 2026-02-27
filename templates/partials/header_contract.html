@@ -1,0 +1,106 @@
+{# Contract App Header #}
+<link rel="stylesheet" href="/static/css/app-shell.css" />
+
+<header class="app-global-header">
+  <div class="app-global-header-left">
+    <button class="app-switcher-btn" id="appSwitcherBtn" aria-label="Apps">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <circle cx="5" cy="5" r="2"/><circle cx="12" cy="5" r="2"/><circle cx="19" cy="5" r="2"/>
+        <circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/>
+        <circle cx="5" cy="19" r="2"/><circle cx="12" cy="19" r="2"/><circle cx="19" cy="19" r="2"/>
+      </svg>
+    </button>
+    <div class="app-current">
+      <div class="app-current-icon" style="background: linear-gradient(135deg, #8b5cf6, #a78bfa);">📋</div>
+      <div class="app-current-name">
+        <span>Verträge</span>
+        <small>KI-Analyse</small>
+      </div>
+    </div>
+  </div>
+  <div class="app-global-header-right">
+    <button class="app-header-action" title="Hilfe">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><circle cx="12" cy="17" r="0.5" fill="currentColor"/>
+      </svg>
+    </button>
+    <button class="app-user-btn" id="appUserBtn">
+      <div class="app-user-avatar">{{ (user.name or user.email or 'U')[:2]|upper }}</div>
+      <span class="app-user-name">{{ user.name or user.email or 'User' }}</span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+  </div>
+</header>
+
+<div class="app-switcher-panel" id="appSwitcherPanel">
+  <div class="app-switcher-header">Ihre Apps</div>
+  <div class="app-switcher-grid">
+    <a href="https://app.sbsdeutschland.com/dashboard" class="app-switcher-item">
+      <div class="app-switcher-item-icon" style="background: linear-gradient(135deg, #003856, #004d7a);">
+        <svg viewBox="0 0 24 24" fill="white" width="24" height="24">
+          <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+          <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+        </svg>
+      </div>
+      <span class="app-switcher-item-name">Dashboard</span>
+    </a>
+    <a href="https://app.sbsdeutschland.com/history" class="app-switcher-item">
+      <div class="app-switcher-item-icon invoice">🧾</div>
+      <span class="app-switcher-item-name">Rechnungen</span>
+    </a>
+    <a href="/" class="app-switcher-item active">
+      <div class="app-switcher-item-icon contract">📋</div>
+      <span class="app-switcher-item-name">Verträge</span>
+      <span class="app-switcher-item-badge">Aktiv</span>
+    </a>
+  </div>
+  <div class="app-switcher-divider"></div>
+  <div class="app-switcher-links">
+    <a href="https://sbsdeutschland.com/sbshomepage/" class="app-switcher-link">🌐 Zur Website</a>
+    <a href="/static/landing/ressourcen.html" class="app-switcher-link">📚 Dokumentation</a>
+  </div>
+</div>
+
+<div class="app-user-menu" id="appUserMenu">
+  <div class="app-user-menu-header">
+    <div class="app-user-menu-name">{{ user.name or 'User' }}</div>
+    <div class="app-user-menu-email">{{ user.email or '' }}</div>
+  </div>
+  <div class="app-user-menu-links">
+    <a href="/profile" class="app-user-menu-link">⚙️ Einstellungen</a>
+    <div class="app-user-menu-divider"></div>
+    <a href="/logout" class="app-user-menu-link danger">🚪 Abmelden</a>
+  </div>
+</div>
+
+<nav class="app-nav-bar">
+  <div class="app-nav-tabs">
+    <a href="/" class="app-nav-tab">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+      </svg>
+      Hochladen
+    </a>
+    <a href="/contracts" class="app-nav-tab">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+      </svg>
+      Verträge
+    </a>
+    <a href="/risks" class="app-nav-tab">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+      </svg>
+      Risiken
+    </a>
+    <a href="/export" class="app-nav-tab">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      Export
+    </a>
+  </div>
+</nav>
+
+<div class="app-overlay" id="appOverlay"></div>
+<script src="/static/js/app-shell.js"></script>

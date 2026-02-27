@@ -1242,158 +1242,116 @@ footer {
 '''
 
 # =============================================================================
-# SHARED HEADER COMPONENT - Exakt wie Invoice App
+# SHARED HEADER COMPONENT - Enterprise SaaS Standard
 # =============================================================================
 SBS_HEADER = '''
-<header>
-  <div class="header-container">
-    <!-- Home Button -->
-    <a href="https://app.sbsdeutschland.com/dashboard" class="home-btn" title="Dashboard">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+<link rel="stylesheet" href="/static/css/design-tokens.css" />
+<link rel="stylesheet" href="/static/css/app-shell.css" />
+
+<header class="app-global-header">
+  <div class="app-global-header-left">
+    <button class="app-switcher-btn" id="appSwitcherBtn" aria-label="Apps">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <circle cx="5" cy="5" r="2"/><circle cx="12" cy="5" r="2"/><circle cx="19" cy="5" r="2"/>
+        <circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/>
+        <circle cx="5" cy="19" r="2"/><circle cx="12" cy="19" r="2"/><circle cx="19" cy="19" r="2"/>
+      </svg>
+    </button>
+    <div class="app-current">
+      <div class="app-current-icon" style="background: linear-gradient(135deg, #a855f7, #7c3aed);">📋</div>
+      <div class="app-current-name">
+        <span>Verträge</span>
+        <small>KI-Analyse</small>
+      </div>
+    </div>
+  </div>
+  <div class="app-global-header-right">
+    <a href="/help" class="app-header-action" title="Hilfe">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><circle cx="12" cy="17" r="0.5" fill="currentColor"/>
       </svg>
     </a>
-    
-    <a href="/" class="header-logo">
-      <img src="/static/sbs-logo-new.png" alt="SBS Logo" onerror="this.style.display='none'">
-      <div class="header-logo-text">
-        <span class="brand">SBS Deutschland</span>
-        <span class="subtitle">Smart Business Service · Weinheim</span>
-      </div>
-    </a>
-    
-    <nav class="header-nav">
-      <a href="/upload" id="nav-upload">Analyse</a>
-      <a href="/history" id="nav-history">Verlauf</a>
-      <a href="/analytics" id="nav-analytics">Analytics</a>
-      
-      <!-- Tools Dropdown -->
-      <div class="dropdown">
-        <button class="dropdown-toggle">
-          Tools
-          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
-        </button>
-        <div class="dropdown-menu">
-          <div class="dropdown-section">
-            <a href="/compare" class="dropdown-item">
-              <span class="icon">⚖️</span>
-              Vertragsvergleich
-            </a>
-            <a href="/library" class="dropdown-item">
-              <span class="icon">📚</span>
-              Klausel-Bibliothek
-            </a>
-            <a href="/exports" class="dropdown-item">
-              <span class="icon">📁</span>
-              Export-Historie
-            </a>
-          </div>
-          <div class="dropdown-section">
-            <a href="https://app.sbsdeutschland.com" class="dropdown-item cross-link" target="_blank">
-              <span class="icon">🧾</span>
-              → KI-Rechnungen
-            </a>
-          </div>
-        </div>
-      </div>
-      
-      <!-- App Switcher -->
-      <div class="dropdown">
-        <button class="app-switcher-btn" title="Apps wechseln">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-            <circle cx="5" cy="5" r="2.5"/>
-            <circle cx="12" cy="5" r="2.5"/>
-            <circle cx="19" cy="5" r="2.5"/>
-            <circle cx="5" cy="12" r="2.5"/>
-            <circle cx="12" cy="12" r="2.5"/>
-            <circle cx="19" cy="12" r="2.5"/>
-            <circle cx="5" cy="19" r="2.5"/>
-            <circle cx="12" cy="19" r="2.5"/>
-            <circle cx="19" cy="19" r="2.5"/>
-          </svg>
-        </button>
-        <div class="dropdown-menu app-switcher-menu" style="width:300px;">
-          <div class="dropdown-section">
-            <div class="dropdown-label">SBS Plattform</div>
-            <a href="https://app.sbsdeutschland.com/dashboard" class="dropdown-item app-item">
-              <span class="app-icon" style="background:linear-gradient(135deg,#003856,#004d73);width:36px;height:36px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:16px;color:white;">🏠</span>
-              <div style="display:flex;flex-direction:column;"><strong>Dashboard</strong><small style="color:#64748b;">Übersicht & Kennzahlen</small></div>
-            </a>
-          </div>
-          <div class="dropdown-section">
-            <div class="dropdown-label">Produkte</div>
-            <a href="https://app.sbsdeutschland.com" class="dropdown-item app-item">
-              <span class="app-icon" style="background:linear-gradient(135deg,#22c55e,#16a34a);width:36px;height:36px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:16px;color:white;">📄</span>
-              <div style="display:flex;flex-direction:column;"><strong>KI-Rechnungen</strong><small style="color:#64748b;">Rechnungsverarbeitung</small></div>
-            </a>
-            <a href="/" class="dropdown-item app-item" style="background:rgba(255,185,0,0.1);border-left:3px solid #FFB900;">
-              <span class="app-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706);width:36px;height:36px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:16px;color:white;">📋</span>
-              <div style="display:flex;flex-direction:column;"><strong>KI-Verträge</strong><small style="color:#64748b;">Vertragsanalyse</small></div>
-            </a>
-          </div>
-        </div>
-      </div>
-      
-      <!-- User Dropdown -->
-      <div class="dropdown">
-        <button class="user-btn dropdown-toggle">
-          <div class="user-avatar">L</div>
-          <span class="user-name">Luis Schenk</span>
-          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
-        </button>
-        <div class="dropdown-menu" style="min-width: 240px;">
-          <div class="dropdown-section">
-            <div class="dropdown-label">Workspace</div>
-            <a href="/upload" class="dropdown-item">
-              <span class="icon">📤</span>
-              Analyse
-            </a>
-            <a href="/history" class="dropdown-item">
-              <span class="icon">📊</span>
-              Verlauf
-            </a>
-            <a href="/analytics" class="dropdown-item">
-              <span class="icon">📈</span>
-              Analytics
-            </a>
-            <a href="/exports" class="dropdown-item">
-              <span class="icon">📁</span>
-              Export-Historie
-            </a>
-          </div>
-          <div class="dropdown-section">
-            <div class="dropdown-label">Konto</div>
-            <a href="/settings" class="dropdown-item">
-              <span class="icon">⚙️</span>
-              Einstellungen
-            </a>
-            <a href="/billing" class="dropdown-item">
-              <span class="icon">💳</span>
-              Abrechnung
-            </a>
-            <a href="/team" class="dropdown-item">
-              <span class="icon">👥</span>
-              Team
-            </a>
-            <a href="/audit" class="dropdown-item">
-              <span class="icon">📋</span>
-              Audit-Log
-            </a>
-          </div>
-          <div class="dropdown-section">
-            <div class="dropdown-label">Apps</div>
-            <a href="https://app.sbsdeutschland.com" class="dropdown-item cross-link" target="_blank">
-              <span class="icon">🧾</span>
-              → KI-Rechnungen
-            </a>
-          </div>
-        </div>
-      </div>
-    </nav>
+    <button class="app-user-btn" id="appUserBtn">
+      <div class="app-user-avatar">{user_initials}</div>
+      <span class="app-user-name">{user_name}</span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
   </div>
 </header>
+
+<div class="app-switcher-panel" id="appSwitcherPanel">
+  <div class="app-switcher-header">Ihre Apps</div>
+  <div class="app-switcher-grid">
+    <a href="https://app.sbsdeutschland.com/dashboard" class="app-switcher-item">
+      <div class="app-switcher-item-icon" style="background: linear-gradient(135deg, #003856, #004d7a);">
+        <svg viewBox="0 0 24 24" fill="white" width="24" height="24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      </div>
+      <span class="app-switcher-item-name">Dashboard</span>
+    </a>
+    <a href="https://app.sbsdeutschland.com/history" class="app-switcher-item">
+      <div class="app-switcher-item-icon invoice">🧾</div>
+      <span class="app-switcher-item-name">Rechnungen</span>
+    </a>
+    <a href="/" class="app-switcher-item active">
+      <div class="app-switcher-item-icon contract">📋</div>
+      <span class="app-switcher-item-name">Verträge</span>
+      <span class="app-switcher-item-badge">Aktiv</span>
+    </a>
+  </div>
+  <div class="app-switcher-divider"></div>
+  <div class="app-switcher-links">
+    <a href="https://sbsdeutschland.com/sbshomepage/" class="app-switcher-link">🌐 Zur Website</a>
+    <a href="/help" class="app-switcher-link">📚 Dokumentation</a>
+  </div>
+</div>
+
+<div class="app-user-menu" id="appUserMenu">
+  <div class="app-user-menu-header">
+    <div class="app-user-menu-name">{user_name}</div>
+    <div class="app-user-menu-email">{user_email}</div>
+    <span class="app-user-menu-plan">Enterprise</span>
+  </div>
+  <div class="app-user-menu-links">
+    <a href="https://app.sbsdeutschland.com/profile" class="app-user-menu-link">⚙️ Profil & Einstellungen</a>
+    <a href="https://app.sbsdeutschland.com/profile#subscription" class="app-user-menu-link">💳 Abonnement & Plan</a>
+    <div class="app-user-menu-divider"></div>
+    <a href="/logout" class="app-user-menu-link danger">🚪 Abmelden</a>
+  </div>
+</div>
+
+<nav class="app-nav-bar">
+  <div class="app-nav-tabs">
+    <a href="/" class="app-nav-tab">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Hochladen
+    </a>
+    <a href="/history" class="app-nav-tab">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Verträge
+    </a>
+    <div class="app-nav-dropdown">
+      <button class="app-nav-dropdown-btn" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+        Tools
+        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="app-nav-dropdown-menu">
+        <a href="/compare" class="app-nav-dropdown-item">⚖️ Vertragsvergleich</a>
+        <a href="/library" class="app-nav-dropdown-item">📚 Klausel-Bibliothek</a>
+        <div class="app-nav-dropdown-divider"></div>
+        <a href="/exports" class="app-nav-dropdown-item">📥 Export-Historie</a>
+      </div>
+    </div>
+    <a href="/analytics" class="app-nav-tab">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Analytics
+    </a>
+  </div>
+</nav>
+
+<div class="app-overlay" id="appOverlay"></div>
 '''
+
 
 # =============================================================================
 # SHARED FOOTER COMPONENT - Exakt wie Invoice App (dunkelblau)
@@ -1456,11 +1414,12 @@ SBS_FOOTER = '''
     </div>
     
     <div class="footer-bottom">
-      <span>© 2025 SBS Deutschland GmbH & Co. KG</span>
+      <span>© 2026 SBS Deutschland GmbH & Co. KG</span>
       <span>Made with <span class="heart">❤️</span> in Weinheim</span>
     </div>
   </div>
 </footer>
+<script src="/static/js/app-shell.js"></script>
 '''
 
 # =============================================================================
@@ -1596,7 +1555,7 @@ def get_upload_page():
   
   <script>
     // Active nav highlighting
-    document.getElementById('nav-upload').classList.add('active');
+    const navUpload = document.getElementById('nav-upload'); if(navUpload) navUpload.classList.add('active');
     
     // File upload handling
     const zone = document.getElementById('uploadZone');

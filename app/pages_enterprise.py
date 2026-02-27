@@ -334,126 +334,119 @@ footer { background: var(--sbs-blue-dark); color: #fff; margin-top: auto; }
 
 
 def get_header(user_name: str = "User", active: str = ""):
-    """Enterprise Header mit Home-Button und App-Switcher."""
+    """Enterprise Header - Exakt wie Invoice App."""
     user_initial = user_name[0].upper() if user_name else "U"
+    user_initials = user_name[:2].upper() if len(user_name) >= 2 else user_initial
     
     return f'''
-<header>
-  <div class="header-container">
-    <!-- Home Button -->
-    <a href="https://app.sbsdeutschland.com/dashboard" class="home-btn" title="Dashboard">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+<link rel="stylesheet" href="/static/css/design-tokens.css" />
+<link rel="stylesheet" href="/static/css/app-shell.css" />
+
+<header class="app-global-header">
+  <div class="app-global-header-left">
+    <button class="app-switcher-btn" id="appSwitcherBtn" aria-label="Apps">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <circle cx="5" cy="5" r="2"/><circle cx="12" cy="5" r="2"/><circle cx="19" cy="5" r="2"/>
+        <circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/>
+        <circle cx="5" cy="19" r="2"/><circle cx="12" cy="19" r="2"/><circle cx="19" cy="19" r="2"/>
+      </svg>
+    </button>
+    <div class="app-current">
+      <div class="app-current-icon" style="background: linear-gradient(135deg, #a855f7, #7c3aed);">📋</div>
+      <div class="app-current-name">
+        <span>Verträge</span>
+        <small>KI-Analyse</small>
+      </div>
+    </div>
+  </div>
+  <div class="app-global-header-right">
+    <a href="/help" class="app-header-action" title="Hilfe">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><circle cx="12" cy="17" r="0.5" fill="currentColor"/>
       </svg>
     </a>
-    
-    <!-- Logo -->
-    <a href="/" class="header-logo">
-      <img src="/static/sbs-logo-new.png" alt="SBS Logo">
-      <div class="header-logo-text">
-        <span class="brand">SBS Deutschland</span>
-        <span class="subtitle">Smart Business Service · Weinheim</span>
-      </div>
-    </a>
-    
-    <nav class="header-nav">
-      <a href="/upload" class="{"active" if active == "analyse" else ""}">Analyse</a>
-      <a href="/history" class="{"active" if active == "verlauf" else ""}">Verlauf</a>
-      <a href="/analytics" class="{"active" if active == "analytics" else ""}">Analytics</a>
-      
-      <div class="dropdown">
-        <button class="dropdown-toggle">
-          Tools
-          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
-        </button>
-        <div class="dropdown-menu">
-          <div class="dropdown-section">
-            <a href="/copilot" class="dropdown-item"><span class="icon">🤖</span> Contract Copilot</a>
-            <a href="/deadlines" class="dropdown-item"><span class="icon">⏰</span> Fristen-Übersicht</a>
-            <a href="/compare" class="dropdown-item"><span class="icon">⚖️</span> Vertragsvergleich</a>
-            <a href="/library" class="dropdown-item"><span class="icon">📚</span> Klausel-Bibliothek</a>
-            <a href="/exports" class="dropdown-item"><span class="icon">📥</span> Export-Historie</a>
-          </div>
-        </div>
-      </div>
-      
-      <!-- App Switcher (Waffle) -->
-      <div class="dropdown">
-        <button class="app-switcher-btn" title="Apps wechseln">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-            <circle cx="5" cy="5" r="2.5"/>
-            <circle cx="12" cy="5" r="2.5"/>
-            <circle cx="19" cy="5" r="2.5"/>
-            <circle cx="5" cy="12" r="2.5"/>
-            <circle cx="12" cy="12" r="2.5"/>
-            <circle cx="19" cy="12" r="2.5"/>
-            <circle cx="5" cy="19" r="2.5"/>
-            <circle cx="12" cy="19" r="2.5"/>
-            <circle cx="19" cy="19" r="2.5"/>
-          </svg>
-        </button>
-        <div class="dropdown-menu app-switcher-menu">
-          <div class="dropdown-section">
-            <div class="dropdown-label">SBS Plattform</div>
-            <a href="https://app.sbsdeutschland.com/dashboard" class="dropdown-item app-item">
-              <span class="app-icon" style="background:linear-gradient(135deg,#003856,#004d73);">🏠</span>
-              <div class="app-info">
-                <strong>Dashboard</strong>
-                <small>Übersicht & Kennzahlen</small>
-              </div>
-            </a>
-          </div>
-          <div class="dropdown-section">
-            <div class="dropdown-label">Produkte</div>
-            <a href="https://app.sbsdeutschland.com" class="dropdown-item app-item">
-              <span class="app-icon" style="background:linear-gradient(135deg,#22c55e,#16a34a);">📄</span>
-              <div class="app-info">
-                <strong>KI-Rechnungen</strong>
-                <small>Rechnungsverarbeitung</small>
-              </div>
-            </a>
-            <a href="https://contract.sbsdeutschland.com" class="dropdown-item app-item active-app">
-              <span class="app-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706);">📋</span>
-              <div class="app-info">
-                <strong>KI-Verträge</strong>
-                <small>Vertragsanalyse</small>
-              </div>
-            </a>
-          </div>
-        </div>
-      </div>
-      
-      <!-- User Menu -->
-      <div class="dropdown">
-        <button class="user-btn">
-          <div class="user-avatar">{user_initial}</div>
-          <span class="user-name">{user_name}</span>
-          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
-        </button>
-        <div class="dropdown-menu">
-          <div class="dropdown-section">
-            <div class="dropdown-label">Workspace</div>
-            <a href="/upload" class="dropdown-item"><span class="icon">🔍</span> Analyse</a>
-            <a href="/history" class="dropdown-item"><span class="icon">📊</span> Verlauf</a>
-            <a href="/analytics" class="dropdown-item"><span class="icon">📈</span> Analytics</a>
-            <a href="/exports" class="dropdown-item"><span class="icon">📥</span> Export-Historie</a>
-          </div>
-          <div class="dropdown-section">
-            <div class="dropdown-label">Konto</div>
-            <a href="/settings" class="dropdown-item"><span class="icon">⚙️</span> Einstellungen</a>
-            <a href="/security" class="dropdown-item"><span class="icon">🔐</span> Sicherheit</a>
-            <a href="/billing" class="dropdown-item"><span class="icon">💳</span> Abrechnung</a>
-            <a href="/team" class="dropdown-item"><span class="icon">👥</span> Team</a>
-            <a href="/audit" class="dropdown-item"><span class="icon">📋</span> Audit-Log</a>
-            <div style="border-top:1px solid #e2e8f0;margin:8px 0;"></div>
-            <a href="/logout" class="dropdown-item" style="color:#dc2626;"><span class="icon">🚪</span> Abmelden</a>
-          </div>
-        </div>
-      </div>
-    </nav>
+    <button class="app-user-btn" id="appUserBtn">
+      <div class="app-user-avatar">{user_initials}</div>
+      <span class="app-user-name">{user_name}</span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
   </div>
 </header>
+
+<div class="app-switcher-panel" id="appSwitcherPanel">
+  <div class="app-switcher-header">Ihre Apps</div>
+  <div class="app-switcher-grid">
+    <a href="https://app.sbsdeutschland.com/dashboard" class="app-switcher-item">
+      <div class="app-switcher-item-icon" style="background: linear-gradient(135deg, #003856, #004d7a);">
+        <svg viewBox="0 0 24 24" fill="white" width="24" height="24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      </div>
+      <span class="app-switcher-item-name">Dashboard</span>
+    </a>
+    <a href="https://app.sbsdeutschland.com/history" class="app-switcher-item">
+      <div class="app-switcher-item-icon invoice">🧾</div>
+      <span class="app-switcher-item-name">Rechnungen</span>
+    </a>
+    <a href="/" class="app-switcher-item active">
+      <div class="app-switcher-item-icon contract">📋</div>
+      <span class="app-switcher-item-name">Verträge</span>
+      <span class="app-switcher-item-badge">Aktiv</span>
+    </a>
+  </div>
+  <div class="app-switcher-divider"></div>
+  <div class="app-switcher-links">
+    <a href="https://sbsdeutschland.com/sbshomepage/" class="app-switcher-link">🌐 Zur Website</a>
+    <a href="/help" class="app-switcher-link">📚 Dokumentation</a>
+  </div>
+</div>
+
+<div class="app-user-menu" id="appUserMenu">
+  <div class="app-user-menu-header">
+    <div class="app-user-menu-name">{user_name}</div>
+    <div class="app-user-menu-email"></div>
+    <span class="app-user-menu-plan">Enterprise</span>
+  </div>
+  <div class="app-user-menu-links">
+    <a href="https://app.sbsdeutschland.com/profile" class="app-user-menu-link">⚙️ Profil & Einstellungen</a>
+    <a href="https://app.sbsdeutschland.com/profile#subscription" class="app-user-menu-link">💳 Abonnement & Plan</a>
+    <div class="app-user-menu-divider"></div>
+    <a href="/logout" class="app-user-menu-link danger">🚪 Abmelden</a>
+  </div>
+</div>
+
+<nav class="app-nav-bar">
+  <div class="app-nav-tabs">
+    <a href="/" class="app-nav-tab {"active" if active == "analyse" else ""}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Hochladen
+    </a>
+    <a href="/history" class="app-nav-tab {"active" if active == "verlauf" else ""}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Verträge
+    </a>
+    <div class="app-nav-dropdown">
+      <button class="app-nav-dropdown-btn" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+        Tools
+        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="app-nav-dropdown-menu">
+        <a href="/copilot" class="app-nav-dropdown-item">🤖 Contract Copilot</a>
+        <a href="/deadlines" class="app-nav-dropdown-item">⏰ Fristenübersicht</a>
+        <div class="app-nav-dropdown-divider"></div>
+        <a href="/compare" class="app-nav-dropdown-item">⚖️ Vertragsvergleich</a>
+        <a href="/library" class="app-nav-dropdown-item">📚 Klausel-Bibliothek</a>
+        <div class="app-nav-dropdown-divider"></div>
+        <a href="/exports" class="app-nav-dropdown-item">📥 Export-Historie</a>
+      </div>
+    </div>
+    <a href="/analytics" class="app-nav-tab {"active" if active == "analytics" else ""}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Analytics
+    </a>
+  </div>
+</nav>
+
+<div class="app-overlay" id="appOverlay"></div>
 '''
 
 
@@ -507,9 +500,10 @@ def get_footer():
         </ul>
       </div>
     </div>
-    <div class="footer-bottom">© 2025 SBS Deutschland GmbH & Co. KG</div>
+    <div class="footer-bottom">© 2026 SBS Deutschland GmbH & Co. KG</div>
   </div>
 </footer>
+<script src="/static/js/app-shell.js"></script>
 '''
 
 
@@ -575,20 +569,39 @@ def get_compare_page(user_name: str = "User"):
     return page_wrapper("Vertragsvergleich", content, user_name, "tools")
 
 
-def get_library_page(user_name: str = "User"):
-    clauses = [
-        (1, "Kündigungsklausel Standard", "Allgemein", "success", "Niedrig", 47),
-        (2, "Haftungsbegrenzung 1x ACV", "SaaS", "warning", "Mittel", 32),
-        (3, "Geheimhaltung 5 Jahre", "NDA", "success", "Niedrig", 28),
-        (4, "Auto-Renewal 30 Tage", "SaaS", "success", "Niedrig", 25),
-        (5, "Datenlokation EU", "SaaS", "success", "Niedrig", 21),
-        (6, "Eigentumsübergang", "Kaufvertrag", "success", "Niedrig", 19),
-        (7, "Vertragsstrafe 10%", "Lieferant", "warning", "Mittel", 15),
-        (8, "Indexmiete jährlich", "Mietvertrag", "warning", "Mittel", 12),
-    ]
-    rows = "".join([f'<tr><td><strong>{c[1]}</strong></td><td><span class="badge badge-info">{c[2]}</span></td><td><span class="badge badge-{c[3]}">{c[4]}</span></td><td>{c[5]}x</td><td><a href="/library/clause/{c[0]}" class="btn btn-secondary" style="padding:6px 14px;font-size:0.8rem;">Ansehen</a></td></tr>' for c in clauses])
+def get_library_page(user_name: str = "User", clauses: list = None, stats: dict = None):
+    """Klausel-Bibliothek mit echten Daten"""
+    clauses = clauses or []
+    stats = stats or {"total": 0, "own_clauses": 0, "types": 0, "total_usage": 0}
     
-    content = f'''
+    risk_badges = {"low": "success", "medium": "warning", "high": "danger", "critical": "danger"}
+    risk_labels = {"low": "Niedrig", "medium": "Mittel", "high": "Hoch", "critical": "Kritisch"}
+    
+    if clauses:
+        rows = ""
+        for c in clauses:
+            risk = c.get("risk_level", "low")
+            badge = risk_badges.get(risk, "info")
+            label = risk_labels.get(risk, risk.capitalize())
+            is_own = "👤 " if not c.get("is_template") else ""
+            rows += f"""<tr>
+                <td><strong>{is_own}{c.get('title', 'Unbekannt')}</strong></td>
+                <td><span class="badge badge-info">{c.get('clause_type', 'Allgemein').replace('_', ' ').title()}</span></td>
+                <td><span class="badge badge-{badge}">{label}</span></td>
+                <td>{c.get('usage_count', 0)}x</td>
+                <td>
+                    <a href="/library/clause/{c.get('id')}" class="btn btn-secondary" style="padding:6px 14px;font-size:0.8rem;">Ansehen</a>
+                    <button onclick="useClause({c.get('id')})" class="btn btn-primary" style="padding:6px 14px;font-size:0.8rem;margin-left:4px;">Verwenden</button>
+                </td>
+            </tr>"""
+    else:
+        rows = """<tr><td colspan="5" style="text-align:center;padding:60px;">
+            <div style="font-size:3rem;margin-bottom:16px;">📚</div>
+            <p style="font-weight:600;margin-bottom:8px;">Keine Klauseln vorhanden</p>
+            <p style="color:var(--sbs-muted);">Erstellen Sie Ihre erste Klausel oder analysieren Sie Verträge.</p>
+        </td></tr>"""
+    
+    content = f"""
 <div class="hero">
   <div class="container">
     <div class="hero-badge"><span class="dot"></span> KLAUSEL-BIBLIOTHEK</div>
@@ -598,33 +611,109 @@ def get_library_page(user_name: str = "User"):
 </div>
 <div class="page-container">
   <div class="stats-grid">
-    <div class="stat-card"><div class="stat-value">48</div><div class="stat-label">Klauseln gesamt</div></div>
-    <div class="stat-card"><div class="stat-value">8</div><div class="stat-label">Vertragstypen</div></div>
-    <div class="stat-card"><div class="stat-value">234</div><div class="stat-label">Verwendungen</div></div>
-    <div class="stat-card"><div class="stat-value">12</div><div class="stat-label">Eigene Klauseln</div></div>
+    <div class="stat-card"><div class="stat-value">{stats.get('total', 0)}</div><div class="stat-label">Klauseln gesamt</div></div>
+    <div class="stat-card"><div class="stat-value">{stats.get('types', 0)}</div><div class="stat-label">Vertragstypen</div></div>
+    <div class="stat-card"><div class="stat-value">{stats.get('total_usage', 0)}</div><div class="stat-label">Verwendungen</div></div>
+    <div class="stat-card"><div class="stat-value">{stats.get('own_clauses', 0)}</div><div class="stat-label">Eigene Klauseln</div></div>
   </div>
   <div class="content-card">
-    <div class="content-card-header"><h3 class="content-card-title">Klauseln</h3><button class="btn btn-primary">+ Neü Klausel</button></div>
+    <div class="content-card-header">
+        <h3 class="content-card-title">Klauseln</h3>
+        <button class="btn btn-primary" onclick="showNewClauseModal()">+ Neue Klausel</button>
+    </div>
     <div class="content-card-body" style="padding:0;">
       <table class="data-table">
         <thead><tr><th>Klausel</th><th>Typ</th><th>Risiko</th><th>Nutzung</th><th>Aktion</th></tr></thead>
-        <tbody>{rows}</tbody>
+        <tbody id="clauseTableBody">{rows}</tbody>
       </table>
     </div>
   </div>
-</div>'''
+</div>
+
+<!-- Neue Klausel Modal -->
+<div id="newClauseModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:white;padding:32px;border-radius:16px;max-width:600px;width:90%;max-height:80vh;overflow-y:auto;">
+    <h3 style="margin-bottom:24px;">📝 Neue Klausel erstellen</h3>
+    <form id="newClauseForm">
+      <div style="margin-bottom:16px;">
+        <label style="display:block;margin-bottom:6px;font-weight:600;">Titel *</label>
+        <input type="text" id="clauseTitle" required style="width:100%;padding:12px;border:1px solid #e2e8f0;border-radius:8px;" placeholder="z.B. Kündigungsklausel 3 Monate">
+      </div>
+      <div style="margin-bottom:16px;">
+        <label style="display:block;margin-bottom:6px;font-weight:600;">Typ</label>
+        <select id="clauseType" style="width:100%;padding:12px;border:1px solid #e2e8f0;border-radius:8px;">
+          <option value="general">Allgemein</option>
+          <option value="saas">SaaS</option>
+          <option value="nda">NDA</option>
+          <option value="employment">Arbeitsvertrag</option>
+          <option value="vendor">Lieferant</option>
+          <option value="rental">Mietvertrag</option>
+        </select>
+      </div>
+      <div style="margin-bottom:16px;">
+        <label style="display:block;margin-bottom:6px;font-weight:600;">Risiko-Level</label>
+        <select id="clauseRisk" style="width:100%;padding:12px;border:1px solid #e2e8f0;border-radius:8px;">
+          <option value="low">Niedrig</option>
+          <option value="medium">Mittel</option>
+          <option value="high">Hoch</option>
+        </select>
+      </div>
+      <div style="margin-bottom:24px;">
+        <label style="display:block;margin-bottom:6px;font-weight:600;">Inhalt</label>
+        <textarea id="clauseContent" rows="6" style="width:100%;padding:12px;border:1px solid #e2e8f0;border-radius:8px;resize:vertical;" placeholder="Klauseltext eingeben..."></textarea>
+      </div>
+      <div style="display:flex;gap:12px;justify-content:flex-end;">
+        <button type="button" onclick="hideNewClauseModal()" class="btn btn-secondary">Abbrechen</button>
+        <button type="submit" class="btn btn-primary">Speichern</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function showNewClauseModal() {{
+  document.getElementById('newClauseModal').style.display = 'flex';
+}}
+function hideNewClauseModal() {{
+  document.getElementById('newClauseModal').style.display = 'none';
+  document.getElementById('newClauseForm').reset();
+}}
+document.getElementById('newClauseForm').addEventListener('submit', async (e) => {{
+  e.preventDefault();
+  const data = {{
+    title: document.getElementById('clauseTitle').value,
+    clause_type: document.getElementById('clauseType').value,
+    risk_level: document.getElementById('clauseRisk').value,
+    content: document.getElementById('clauseContent').value
+  }};
+  try {{
+    const res = await fetch('/api/library/clauses', {{
+      method: 'POST',
+      headers: {{'Content-Type': 'application/json'}},
+      body: JSON.stringify(data)
+    }});
+    if (res.ok) {{
+      hideNewClauseModal();
+      location.reload();
+    }} else {{
+      alert('Fehler beim Speichern');
+    }}
+  }} catch(err) {{
+    alert('Verbindungsfehler');
+  }}
+}});
+async function useClause(id) {{
+  await fetch('/api/library/clauses/' + id + '/use', {{method: 'POST'}});
+  alert('Klausel wurde kopiert!');
+}}
+</script>
+"""
     return page_wrapper("Klausel-Bibliothek", content, user_name, "tools")
 
 
 def get_exports_page(user_name: str = "User"):
-    exports = [
-        ("22.12.2025 14:32", "test_nda_analyse.pdf", "PDF", "danger", "124 KB"),
-        ("22.12.2025 14:30", "test_nda_analyse.json", "JSON", "info", "8 KB"),
-        ("18.12.2025 12:45", "saas_vertrag.pdf", "PDF", "danger", "156 KB"),
-    ]
-    rows = "".join([f'<tr><td>{e[0]}</td><td><strong>{e[1]}</strong></td><td><span class="badge badge-{e[3]}">{e[2]}</span></td><td>{e[4]}</td><td><button class="btn btn-secondary" style="padding:6px 14px;font-size:0.8rem;">⬇️ Download</button></td></tr>' for e in exports])
-    
-    content = f'''
+    """Enterprise Export-Historie mit echten Daten aus DB"""
+    content = """
 <div class="hero">
   <div class="container">
     <div class="hero-badge"><span class="dot"></span> EXPORT-HISTORIE</div>
@@ -634,20 +723,69 @@ def get_exports_page(user_name: str = "User"):
 </div>
 <div class="page-container">
   <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);">
-    <div class="stat-card"><div class="stat-value">127</div><div class="stat-label">Exporte gesamt</div></div>
-    <div class="stat-card"><div class="stat-value">89</div><div class="stat-label">PDF Reports</div></div>
-    <div class="stat-card"><div class="stat-value">38</div><div class="stat-label">JSON Exporte</div></div>
+    <div class="stat-card"><div class="stat-value" id="stat-total">0</div><div class="stat-label">Exporte gesamt</div></div>
+    <div class="stat-card"><div class="stat-value" id="stat-pdf">0</div><div class="stat-label">PDF Reports</div></div>
+    <div class="stat-card"><div class="stat-value" id="stat-json">0</div><div class="stat-label">JSON Exporte</div></div>
   </div>
   <div class="content-card">
     <div class="content-card-header"><h3 class="content-card-title">Letzte Exporte</h3></div>
     <div class="content-card-body" style="padding:0;">
       <table class="data-table">
-        <thead><tr><th>Datum</th><th>Datei</th><th>Format</th><th>Größe</th><th>Aktion</th></tr></thead>
-        <tbody>{rows}</tbody>
+        <thead><tr><th>Datum</th><th>Vertrag</th><th>Format</th><th>Größe</th><th>Aktion</th></tr></thead>
+        <tbody id="exports-table">
+          <tr><td colspan="5" style="text-align:center;padding:40px;color:var(--sbs-muted);">Lädt...</td></tr>
+        </tbody>
       </table>
     </div>
   </div>
-</div>'''
+  <div id="empty-state" style="display:none;text-align:center;padding:60px;">
+    <div style="font-size:4rem;margin-bottom:16px;">📥</div>
+    <h3 style="margin-bottom:8px;">Keine Exporte vorhanden</h3>
+    <p style="color:var(--sbs-muted);margin-bottom:24px;">Exportieren Sie Vertragsanalysen als PDF oder JSON.</p>
+    <a href="/history" class="btn btn-primary">Zu meinen Verträgen</a>
+  </div>
+</div>
+<script>
+async function loadExports() {
+  try {
+    const [exportsRes, statsRes] = await Promise.all([
+      fetch('/api/exports'),
+      fetch('/api/exports/stats')
+    ]);
+    const exports = await exportsRes.json();
+    const stats = await statsRes.json();
+    
+    document.getElementById('stat-total').textContent = stats.total || 0;
+    document.getElementById('stat-pdf').textContent = stats.pdf_count || 0;
+    document.getElementById('stat-json').textContent = stats.json_count || 0;
+    
+    const tbody = document.getElementById('exports-table');
+    if (!exports.exports || exports.exports.length === 0) {
+      tbody.parentElement.parentElement.parentElement.style.display = 'none';
+      document.getElementById('empty-state').style.display = 'block';
+      return;
+    }
+    
+    tbody.innerHTML = exports.exports.map(e => {
+      const date = new Date(e.created_at).toLocaleString('de-DE');
+      const size = e.file_size ? (e.file_size / 1024).toFixed(0) + ' KB' : '-';
+      const badge = e.export_format === 'pdf' ? 'danger' : 'info';
+      return `<tr>
+        <td>${date}</td>
+        <td><strong>${e.filename}</strong></td>
+        <td><span class="badge badge-${badge}">${e.export_format.toUpperCase()}</span></td>
+        <td>${size}</td>
+        <td><a href="/api/v3/contracts/${e.contract_id}/export/${e.export_format}" class="btn btn-secondary" style="padding:6px 14px;font-size:0.8rem;">⬇️ Download</a></td>
+      </tr>`;
+    }).join('');
+  } catch (err) {
+    console.error('Error loading exports:', err);
+    document.getElementById('exports-table').innerHTML = '<tr><td colspan="5" style="text-align:center;color:red;">Fehler beim Laden</td></tr>';
+  }
+}
+loadExports();
+</script>
+"""
     return page_wrapper("Export-Historie", content, user_name, "tools")
 
 

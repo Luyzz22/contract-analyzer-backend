@@ -101,7 +101,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 # CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["https://contract.sbsdeutschland.com", "https://sbsdeutschland.com", "https://sbsnexus.de", "http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -203,14 +203,26 @@ class HealthResponse(BaseModel):
 # ============================================================================
 
 @app.get("/", response_class=HTMLResponse)
-async def landing_page():
+async def landing_page(request: Request):
     """Landing Page mit Enterprise Design"""
-    return get_landing_page()
+    user = get_user_info(request)
+    initials = "".join([n[0] for n in user["name"].split()[:2]]).upper() if user["name"] != "Gast" else "G"
+    html = get_landing_page()
+    html = html.replace("{user_name}", user["name"])
+    html = html.replace("{user_email}", user.get("email", ""))
+    html = html.replace("{user_initials}", initials)
+    return html
 
 @app.get("/upload", response_class=HTMLResponse)
-async def upload_page():
+async def upload_page(request: Request):
     """Upload Page mit 8 Vertragstypen"""
-    return get_upload_page()
+    user = get_user_info(request)
+    initials = "".join([n[0] for n in user["name"].split()[:2]]).upper() if user["name"] != "Gast" else "G"
+    html = get_upload_page()
+    html = html.replace("{user_name}", user["name"])
+    html = html.replace("{user_email}", user.get("email", ""))
+    html = html.replace("{user_initials}", initials)
+    return html
 
 @app.get("/history", response_class=HTMLResponse)
 async def history_page(request: Request):
@@ -220,10 +232,18 @@ async def history_page(request: Request):
     # Verträge aus DB laden
     conn = _init_db()
     try:
-        rows = conn.execute(
-            "SELECT contract_id, filename, contract_type, created_at, status, risk_level, risk_score "
-            "FROM contracts ORDER BY created_at DESC LIMIT 50"
-        ).fetchall()
+        user_id = user.get("id") if isinstance(user, dict) else None
+        if user_id:
+            rows = conn.execute(
+                "SELECT contract_id, filename, contract_type, created_at, status, risk_level, risk_score "
+                "FROM contracts WHERE user_id = ? ORDER BY created_at DESC LIMIT 50",
+                (user_id,)
+            ).fetchall()
+        else:
+            rows = conn.execute(
+                "SELECT contract_id, filename, contract_type, created_at, status, risk_level, risk_score "
+                "FROM contracts ORDER BY created_at DESC LIMIT 50"
+            ).fetchall()
     finally:
         conn.close()
     
@@ -376,30 +396,30 @@ async def analytics_page(request: Request):
     """Analytics Dashboard mit echten Daten"""
     user = get_user_info(request)
     
-    # KPIs aus DB laden
+    # KPIs aus DB laden (gefiltert nach user_id)
     conn = _init_db()
+    user_id = user.get("id") if isinstance(user, dict) else None
     try:
-        total = conn.execute("SELECT COUNT(*) FROM contracts").fetchone()[0] or 0
-        analyzed = conn.execute("SELECT COUNT(*) FROM contracts WHERE status = 'analyzed'").fetchone()[0] or 0
-        
-        # Risiko-Verteilung
-        critical = conn.execute("SELECT COUNT(*) FROM contracts WHERE risk_level = 'critical'").fetchone()[0] or 0
-        high = conn.execute("SELECT COUNT(*) FROM contracts WHERE risk_level = 'high'").fetchone()[0] or 0
-        medium = conn.execute("SELECT COUNT(*) FROM contracts WHERE risk_level = 'medium'").fetchone()[0] or 0
-        low = conn.execute("SELECT COUNT(*) FROM contracts WHERE risk_level = 'low'").fetchone()[0] or 0
-        
-        # Durchschnittlicher Risiko-Score
-        avg_score = conn.execute("SELECT AVG(risk_score) FROM contracts WHERE risk_score IS NOT NULL").fetchone()[0] or 0
-        
-        # Vertragstypen-Verteilung
-        type_counts = conn.execute(
-            "SELECT contract_type, COUNT(*) as cnt FROM contracts GROUP BY contract_type ORDER BY cnt DESC"
-        ).fetchall()
-        
-        # Letzte 7 Tage
-        recent = conn.execute(
-            "SELECT COUNT(*) FROM contracts WHERE created_at > datetime('now', '-7 days')"
-        ).fetchone()[0] or 0
+        if user_id:
+            total = conn.execute("SELECT COUNT(*) FROM contracts WHERE user_id = ?", (user_id,)).fetchone()[0] or 0
+            analyzed = conn.execute("SELECT COUNT(*) FROM contracts WHERE status = 'analyzed' AND user_id = ?", (user_id,)).fetchone()[0] or 0
+            critical = conn.execute("SELECT COUNT(*) FROM contracts WHERE risk_level = 'critical' AND user_id = ?", (user_id,)).fetchone()[0] or 0
+            high = conn.execute("SELECT COUNT(*) FROM contracts WHERE risk_level = 'high' AND user_id = ?", (user_id,)).fetchone()[0] or 0
+            medium = conn.execute("SELECT COUNT(*) FROM contracts WHERE risk_level = 'medium' AND user_id = ?", (user_id,)).fetchone()[0] or 0
+            low = conn.execute("SELECT COUNT(*) FROM contracts WHERE risk_level = 'low' AND user_id = ?", (user_id,)).fetchone()[0] or 0
+            avg_score = conn.execute("SELECT AVG(risk_score) FROM contracts WHERE risk_score IS NOT NULL AND user_id = ?", (user_id,)).fetchone()[0] or 0
+            type_counts = conn.execute("SELECT contract_type, COUNT(*) as cnt FROM contracts WHERE user_id = ? GROUP BY contract_type ORDER BY cnt DESC", (user_id,)).fetchall()
+            recent = conn.execute("SELECT COUNT(*) FROM contracts WHERE created_at > datetime('now', '-7 days') AND user_id = ?", (user_id,)).fetchone()[0] or 0
+        else:
+            total = conn.execute("SELECT COUNT(*) FROM contracts").fetchone()[0] or 0
+            analyzed = conn.execute("SELECT COUNT(*) FROM contracts WHERE status = 'analyzed'").fetchone()[0] or 0
+            critical = conn.execute("SELECT COUNT(*) FROM contracts WHERE risk_level = 'critical'").fetchone()[0] or 0
+            high = conn.execute("SELECT COUNT(*) FROM contracts WHERE risk_level = 'high'").fetchone()[0] or 0
+            medium = conn.execute("SELECT COUNT(*) FROM contracts WHERE risk_level = 'medium'").fetchone()[0] or 0
+            low = conn.execute("SELECT COUNT(*) FROM contracts WHERE risk_level = 'low'").fetchone()[0] or 0
+            avg_score = conn.execute("SELECT AVG(risk_score) FROM contracts WHERE risk_score IS NOT NULL").fetchone()[0] or 0
+            type_counts = conn.execute("SELECT contract_type, COUNT(*) as cnt FROM contracts GROUP BY contract_type ORDER BY cnt DESC").fetchall()
+            recent = conn.execute("SELECT COUNT(*) FROM contracts WHERE created_at > datetime('now', '-7 days')").fetchone()[0] or 0
     finally:
         conn.close()
     
@@ -567,11 +587,12 @@ def get_user_info(request: Request):
     user = get_optional_user(request)
     if user:
         return {
+            "id": user.get("user_id"),
             "name": user.get("name", user.get("username", "User")),
             "email": user.get("email", ""),
             "is_admin": user.get("username") in ADMIN_USERNAMES or user.get("email") in ADMIN_EMAILS
         }
-    return {"name": "Gast", "email": "", "is_admin": False}
+    return {"id": None, "name": "Gast", "email": "", "is_admin": False}
 
 @app.get("/compare", response_class=HTMLResponse)
 async def compare_page(request: Request):
@@ -590,8 +611,9 @@ async def exports_page(request: Request):
 
 @app.get("/settings", response_class=HTMLResponse)
 async def settings_page(request: Request):
-    user = get_user_info(request)
-    return get_settings_page(user["name"], user["email"])
+    """Redirect zu zentralen Unified Settings in Invoice App"""
+    from starlette.responses import RedirectResponse
+    return RedirectResponse(url="https://app.sbsdeutschland.com/settings#profile", status_code=303)
 
 @app.get("/billing", response_class=HTMLResponse)
 async def billing_page(request: Request):
@@ -1031,9 +1053,11 @@ async def api_upload_contract(request: Request):
     # In DB speichern
     conn = _init_db()
     try:
+        user = get_user_info(request)
+        user_id = user.get("id") if isinstance(user, dict) else None
         conn.execute(
-            "INSERT INTO contracts (contract_id, filename, contract_type, created_at, status) VALUES (?, ?, ?, ?, ?)",
-            (contract_id, safe_filename, str(contract_type), datetime.utcnow().isoformat(), "uploaded")
+            "INSERT INTO contracts (contract_id, filename, contract_type, created_at, status, user_id) VALUES (?, ?, ?, ?, ?, ?)",
+            (contract_id, safe_filename, str(contract_type), datetime.utcnow().isoformat(), "uploaded", user_id)
         )
         conn.commit()
         # Audit-Log
@@ -1184,14 +1208,22 @@ async def api_analyze_contract(contract_id: str, request: Request):
         raise HTTPException(status_code=500, detail=f"Analysis failed: {e}")
 
 @app.get("/api/v3/contracts/{contract_id}")
-async def api_get_contract(contract_id: str):
+async def api_get_contract(contract_id: str, request: Request):
     """Einzelnen Vertrag abrufen"""
+    user = get_user_info(request)
+    user_id = user.get("id") if isinstance(user, dict) else None
     conn = _init_db()
     try:
-        meta = conn.execute(
-            "SELECT contract_id, filename, contract_type, created_at, status, risk_level, risk_score FROM contracts WHERE contract_id = ?",
-            (contract_id,)
-        ).fetchone()
+        if user_id:
+            meta = conn.execute(
+                "SELECT contract_id, filename, contract_type, created_at, status, risk_level, risk_score FROM contracts WHERE contract_id = ? AND user_id = ?",
+                (contract_id, user_id)
+            ).fetchone()
+        else:
+            meta = conn.execute(
+                "SELECT contract_id, filename, contract_type, created_at, status, risk_level, risk_score FROM contracts WHERE contract_id = ?",
+                (contract_id,)
+            ).fetchone()
         
         analysis = conn.execute(
             "SELECT analysis_json FROM analysis_results WHERE contract_id = ?",
@@ -1220,8 +1252,10 @@ async def api_get_contract(contract_id: str):
     return result
 
 @app.get("/api/v3/contracts/{contract_id}/export/json")
-async def api_export_json(contract_id: str):
+async def api_export_json(contract_id: str, request: Request):
     """Export als JSON"""
+    user = get_user_info(request)
+    user_id = user.get("id")
     conn = _init_db()
     try:
         row = conn.execute("SELECT analysis_json FROM analysis_results WHERE contract_id = ?", (contract_id,)).fetchone()
@@ -1231,15 +1265,21 @@ async def api_export_json(contract_id: str):
     if not row:
         raise HTTPException(status_code=404, detail="No analysis found")
     
+    # Track export
+    filename = f"contract_{contract_id}.json"
+    track_export(user_id, contract_id, filename, "json", len(row[0]))
+    
     return StreamingResponse(
         io.BytesIO(row[0].encode("utf-8")),
         media_type="application/json",
-        headers={"Content-Disposition": f"attachment; filename=contract_{contract_id}.json"}
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
 
 @app.get("/api/v3/contracts/{contract_id}/export/pdf")
-async def api_export_pdf(contract_id: str):
+async def api_export_pdf(contract_id: str, request: Request):
     """Export als professionelles PDF mit SBS-Branding"""
+    user = get_user_info(request)
+    user_id = user.get("id")
     from .pdf_report import generate_contract_pdf
     
     conn = _init_db()
@@ -1260,24 +1300,35 @@ async def api_export_pdf(contract_id: str):
         if filename.endswith(".pdf"):
             filename = filename[:-4]
         
+        export_filename = f"{filename}_analyse.pdf"
+        track_export(user_id, contract_id, export_filename, "pdf", len(pdf_bytes))
+        
         return StreamingResponse(
             io.BytesIO(pdf_bytes),
             media_type="application/pdf",
-            headers={"Content-Disposition": f"attachment; filename={filename}_analyse.pdf"}
+            headers={"Content-Disposition": f"attachment; filename={export_filename}"}
         )
     except Exception as e:
         logger.error(f"PDF generation failed: {e}")
         raise HTTPException(status_code=500, detail=f"PDF generation failed: {e}")
 
 @app.get("/api/v3/dashboard/summary")
-async def api_dashboard_summary():
+async def api_dashboard_summary(request: Request):
     """Dashboard KPIs"""
+    user = get_user_info(request)
+    user_id = user.get("id") if isinstance(user, dict) else None
     conn = _init_db()
     try:
-        total = conn.execute("SELECT COUNT(*) FROM contracts").fetchone()[0]
-        analyzed = conn.execute("SELECT COUNT(*) FROM contracts WHERE status = 'analyzed'").fetchone()[0]
-        critical = conn.execute("SELECT COUNT(*) FROM contracts WHERE risk_level = 'critical'").fetchone()[0]
-        avg_score = conn.execute("SELECT AVG(risk_score) FROM contracts WHERE risk_score IS NOT NULL").fetchone()[0]
+        if user_id:
+            total = conn.execute("SELECT COUNT(*) FROM contracts WHERE user_id = ?", (user_id,)).fetchone()[0]
+            analyzed = conn.execute("SELECT COUNT(*) FROM contracts WHERE status = 'analyzed' AND user_id = ?", (user_id,)).fetchone()[0]
+            critical = conn.execute("SELECT COUNT(*) FROM contracts WHERE risk_level = 'critical' AND user_id = ?", (user_id,)).fetchone()[0]
+            avg_score = conn.execute("SELECT AVG(risk_score) FROM contracts WHERE risk_score IS NOT NULL AND user_id = ?", (user_id,)).fetchone()[0]
+        else:
+            total = conn.execute("SELECT COUNT(*) FROM contracts").fetchone()[0]
+            analyzed = conn.execute("SELECT COUNT(*) FROM contracts WHERE status = 'analyzed'").fetchone()[0]
+            critical = conn.execute("SELECT COUNT(*) FROM contracts WHERE risk_level = 'critical'").fetchone()[0]
+            avg_score = conn.execute("SELECT AVG(risk_score) FROM contracts WHERE risk_score IS NOT NULL").fetchone()[0]
     finally:
         conn.close()
     
@@ -1435,6 +1486,228 @@ async def shutdown():
 # ============================================================================
 # MAIN
 # ============================================================================
+
+
+# ============================================================================
+# CLAUSE LIBRARY API (Enterprise)
+# ============================================================================
+
+@app.get("/api/library/clauses")
+async def api_get_clauses(request: Request):
+    """Alle Klauseln für den User"""
+    user = get_user_info(request)
+    user_id = user.get("id")
+    
+    conn = _init_db()
+    try:
+        if user_id:
+            # User-eigene + Template-Klauseln
+            clauses = conn.execute("""
+                SELECT id, title, content, clause_type, risk_level, tags, is_template, usage_count, created_at
+                FROM clause_library 
+                WHERE user_id = ? OR is_template = 1
+                ORDER BY usage_count DESC, created_at DESC
+            """, (user_id,)).fetchall()
+        else:
+            # Nur Templates
+            clauses = conn.execute("""
+                SELECT id, title, content, clause_type, risk_level, tags, is_template, usage_count, created_at
+                FROM clause_library WHERE is_template = 1
+                ORDER BY usage_count DESC
+            """).fetchall()
+    finally:
+        conn.close()
+    
+    return {
+        "clauses": [dict(c) for c in clauses],
+        "count": len(clauses)
+    }
+
+@app.post("/api/library/clauses")
+async def api_create_clause(request: Request):
+    """Neue Klausel erstellen"""
+    user = get_user_info(request)
+    user_id = user.get("id")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Nicht authentifiziert")
+    
+    data = await request.json()
+    title = data.get("title", "").strip()
+    content = data.get("content", "").strip()
+    clause_type = data.get("clause_type", "general")
+    risk_level = data.get("risk_level", "low")
+    tags = data.get("tags", "")
+    
+    if not title:
+        raise HTTPException(status_code=400, detail="Titel erforderlich")
+    
+    conn = _init_db()
+    try:
+        cursor = conn.execute("""
+            INSERT INTO clause_library (user_id, title, content, clause_type, risk_level, tags)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (user_id, title, content, clause_type, risk_level, tags))
+        conn.commit()
+        clause_id = cursor.lastrowid
+    finally:
+        conn.close()
+    
+    return {"success": True, "clause_id": clause_id}
+
+@app.get("/api/library/clauses/{clause_id}")
+async def api_get_clause(clause_id: int, request: Request):
+    """Einzelne Klausel abrufen"""
+    user = get_user_info(request)
+    user_id = user.get("id")
+    
+    conn = _init_db()
+    try:
+        clause = conn.execute("""
+            SELECT * FROM clause_library 
+            WHERE id = ? AND (user_id = ? OR is_template = 1)
+        """, (clause_id, user_id)).fetchone()
+    finally:
+        conn.close()
+    
+    if not clause:
+        raise HTTPException(status_code=404, detail="Klausel nicht gefunden")
+    
+    return dict(clause)
+
+@app.delete("/api/library/clauses/{clause_id}")
+async def api_delete_clause(clause_id: int, request: Request):
+    """Klausel löschen"""
+    user = get_user_info(request)
+    user_id = user.get("id")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Nicht authentifiziert")
+    
+    conn = _init_db()
+    try:
+        # Nur eigene Klauseln löschen (keine Templates)
+        result = conn.execute("""
+            DELETE FROM clause_library WHERE id = ? AND user_id = ? AND is_template = 0
+        """, (clause_id, user_id))
+        conn.commit()
+        deleted = result.rowcount > 0
+    finally:
+        conn.close()
+    
+    return {"success": deleted}
+
+@app.post("/api/library/clauses/{clause_id}/use")
+async def api_use_clause(clause_id: int, request: Request):
+    """Klausel-Nutzung tracken"""
+    conn = _init_db()
+    try:
+        conn.execute("UPDATE clause_library SET usage_count = usage_count + 1 WHERE id = ?", (clause_id,))
+        conn.commit()
+    finally:
+        conn.close()
+    return {"success": True}
+
+@app.get("/api/library/stats")
+async def api_library_stats(request: Request):
+    """Library Statistiken"""
+    user = get_user_info(request)
+    user_id = user.get("id")
+    
+    conn = _init_db()
+    try:
+        if user_id:
+            total = conn.execute("SELECT COUNT(*) FROM clause_library WHERE user_id = ? OR is_template = 1", (user_id,)).fetchone()[0]
+            own = conn.execute("SELECT COUNT(*) FROM clause_library WHERE user_id = ? AND is_template = 0", (user_id,)).fetchone()[0]
+            types = conn.execute("SELECT COUNT(DISTINCT clause_type) FROM clause_library WHERE user_id = ? OR is_template = 1", (user_id,)).fetchone()[0]
+            usage = conn.execute("SELECT COALESCE(SUM(usage_count), 0) FROM clause_library WHERE user_id = ?", (user_id,)).fetchone()[0]
+        else:
+            total = conn.execute("SELECT COUNT(*) FROM clause_library WHERE is_template = 1").fetchone()[0]
+            own = 0
+            types = conn.execute("SELECT COUNT(DISTINCT clause_type) FROM clause_library WHERE is_template = 1").fetchone()[0]
+            usage = 0
+    finally:
+        conn.close()
+    
+    return {"total": total, "own_clauses": own, "types": types, "total_usage": usage}
+
+# ============================================================================
+# EXPORT HISTORY API (Enterprise)
+# ============================================================================
+
+@app.get("/api/exports")
+async def api_get_exports(request: Request, limit: int = 50):
+    """Export-Historie für den User"""
+    user = get_user_info(request)
+    user_id = user.get("id")
+    
+    conn = _init_db()
+    try:
+        if user_id:
+            exports = conn.execute("""
+                SELECT e.id, e.contract_id, e.filename, e.export_format, e.file_size, e.created_at,
+                       c.filename as contract_filename
+                FROM export_history e
+                LEFT JOIN contracts c ON e.contract_id = c.contract_id
+                WHERE e.user_id = ?
+                ORDER BY e.created_at DESC
+                LIMIT ?
+            """, (user_id, limit)).fetchall()
+        else:
+            exports = []
+    finally:
+        conn.close()
+    
+    # Manuell zu dict konvertieren
+    export_list = []
+    for e in exports:
+        export_list.append({
+            "id": e[0],
+            "contract_id": e[1],
+            "filename": e[2],
+            "export_format": e[3],
+            "file_size": e[4],
+            "created_at": e[5],
+            "contract_filename": e[6] if len(e) > 6 else None
+        })
+    return {
+        "exports": export_list,
+        "count": len(export_list)
+    }
+
+@app.get("/api/exports/stats")
+async def api_export_stats(request: Request):
+    """Export Statistiken"""
+    user = get_user_info(request)
+    user_id = user.get("id")
+    
+    conn = _init_db()
+    try:
+        if user_id:
+            total = conn.execute("SELECT COUNT(*) FROM export_history WHERE user_id = ?", (user_id,)).fetchone()[0]
+            pdf_count = conn.execute("SELECT COUNT(*) FROM export_history WHERE user_id = ? AND export_format = 'pdf'", (user_id,)).fetchone()[0]
+            json_count = conn.execute("SELECT COUNT(*) FROM export_history WHERE user_id = ? AND export_format = 'json'", (user_id,)).fetchone()[0]
+        else:
+            total = pdf_count = json_count = 0
+    finally:
+        conn.close()
+    
+    return {"total": total, "pdf_count": pdf_count, "json_count": json_count}
+
+def track_export(user_id: int, contract_id: str, filename: str, export_format: str, file_size: int = 0):
+    """Export in Historie speichern"""
+    if not user_id:
+        return
+    conn = _init_db()
+    try:
+        conn.execute("""
+            INSERT INTO export_history (user_id, contract_id, filename, export_format, file_size)
+            VALUES (?, ?, ?, ?, ?)
+        """, (user_id, contract_id, filename, export_format, file_size))
+        conn.commit()
+    except Exception as e:
+        logger.error(f"Export tracking failed: {e}")
+    finally:
+        conn.close()
+
 
 if __name__ == "__main__":
     import uvicorn
@@ -1666,7 +1939,11 @@ RISIKEN:
     # Alle Verträge als Übersicht wenn kein spezifischer ausgewählt
     if not contract_id:
         conn = _init_db()
-        contracts = conn.execute("SELECT contract_id, filename, contract_type, status, risk_level, risk_score FROM contracts ORDER BY created_at DESC LIMIT 20").fetchall()
+        user_id = user.get("id") if user else None
+        if user_id:
+            contracts = conn.execute("SELECT contract_id, filename, contract_type, status, risk_level, risk_score FROM contracts WHERE user_id = ? ORDER BY created_at DESC LIMIT 20", (user_id,)).fetchall()
+        else:
+            contracts = conn.execute("SELECT contract_id, filename, contract_type, status, risk_level, risk_score FROM contracts ORDER BY created_at DESC LIMIT 20").fetchall()
         conn.close()
         
         if contracts:
@@ -1733,13 +2010,24 @@ Wenn du Risiken oder problematische Klauseln findest, weise klar darauf hin.
 @app.get("/api/copilot/contracts")
 async def copilot_contracts(request: Request):
     """Liste aller Verträge für Copilot Kontext"""
+    user = get_user_info(request)
+    user_id = user.get("id") if isinstance(user, dict) else None
     conn = _init_db()
-    contracts = conn.execute("""
-        SELECT c.contract_id, c.filename, c.contract_type, c.status, c.risk_level, c.risk_score, c.created_at
-        FROM contracts c
-        ORDER BY c.created_at DESC
-        LIMIT 50
-    """).fetchall()
+    if user_id:
+        contracts = conn.execute("""
+            SELECT c.contract_id, c.filename, c.contract_type, c.status, c.risk_level, c.risk_score, c.created_at
+            FROM contracts c
+            WHERE c.user_id = ?
+            ORDER BY c.created_at DESC
+            LIMIT 50
+        """, (user_id,)).fetchall()
+    else:
+        contracts = conn.execute("""
+            SELECT c.contract_id, c.filename, c.contract_type, c.status, c.risk_level, c.risk_score, c.created_at
+            FROM contracts c
+            ORDER BY c.created_at DESC
+            LIMIT 50
+        """).fetchall()
     conn.close()
     
     return {"contracts": [
@@ -1801,6 +2089,162 @@ async def get_usage(request: Request):
     
     data = get_usage_with_limits(email)
     return data
+
+
+
+# ============================================================================
+# CLAUSE LIBRARY API (Enterprise)
+# ============================================================================
+
+@app.get("/api/library/clauses")
+async def api_get_clauses(request: Request):
+    """Alle Klauseln für den User"""
+    user = get_user_info(request)
+    user_id = user.get("id")
+    conn = _init_db()
+    try:
+        if user_id:
+            clauses = conn.execute("SELECT id, title, content, clause_type, risk_level, tags, is_template, usage_count, created_at FROM clause_library WHERE user_id = ? OR is_template = 1 ORDER BY usage_count DESC, created_at DESC", (user_id,)).fetchall()
+        else:
+            clauses = conn.execute("SELECT id, title, content, clause_type, risk_level, tags, is_template, usage_count, created_at FROM clause_library WHERE is_template = 1 ORDER BY usage_count DESC").fetchall()
+    finally:
+        conn.close()
+    return {"clauses": [dict(c) for c in clauses], "count": len(clauses)}
+
+@app.post("/api/library/clauses")
+async def api_create_clause(request: Request):
+    """Neue Klausel erstellen"""
+    user = get_user_info(request)
+    user_id = user.get("id")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Nicht authentifiziert")
+    data = await request.json()
+    title = data.get("title", "").strip()
+    content_text = data.get("content", "").strip()
+    clause_type = data.get("clause_type", "general")
+    risk_level = data.get("risk_level", "low")
+    tags = data.get("tags", "")
+    if not title:
+        raise HTTPException(status_code=400, detail="Titel erforderlich")
+    conn = _init_db()
+    try:
+        cursor = conn.execute("INSERT INTO clause_library (user_id, title, content, clause_type, risk_level, tags) VALUES (?, ?, ?, ?, ?, ?)", (user_id, title, content_text, clause_type, risk_level, tags))
+        conn.commit()
+        clause_id = cursor.lastrowid
+    finally:
+        conn.close()
+    return {"success": True, "clause_id": clause_id}
+
+@app.get("/api/library/clauses/{clause_id}")
+async def api_get_clause(clause_id: int, request: Request):
+    """Einzelne Klausel abrufen"""
+    user = get_user_info(request)
+    user_id = user.get("id")
+    conn = _init_db()
+    try:
+        clause = conn.execute("SELECT * FROM clause_library WHERE id = ? AND (user_id = ? OR is_template = 1)", (clause_id, user_id)).fetchone()
+    finally:
+        conn.close()
+    if not clause:
+        raise HTTPException(status_code=404, detail="Klausel nicht gefunden")
+    return dict(clause)
+
+@app.delete("/api/library/clauses/{clause_id}")
+async def api_delete_clause(clause_id: int, request: Request):
+    """Klausel löschen"""
+    user = get_user_info(request)
+    user_id = user.get("id")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Nicht authentifiziert")
+    conn = _init_db()
+    try:
+        result = conn.execute("DELETE FROM clause_library WHERE id = ? AND user_id = ? AND is_template = 0", (clause_id, user_id))
+        conn.commit()
+        deleted = result.rowcount > 0
+    finally:
+        conn.close()
+    return {"success": deleted}
+
+@app.post("/api/library/clauses/{clause_id}/use")
+async def api_use_clause(clause_id: int, request: Request):
+    """Klausel-Nutzung tracken"""
+    conn = _init_db()
+    try:
+        conn.execute("UPDATE clause_library SET usage_count = usage_count + 1 WHERE id = ?", (clause_id,))
+        conn.commit()
+    finally:
+        conn.close()
+    return {"success": True}
+
+@app.get("/api/library/stats")
+async def api_library_stats(request: Request):
+    """Library Statistiken"""
+    user = get_user_info(request)
+    user_id = user.get("id")
+    conn = _init_db()
+    try:
+        if user_id:
+            total = conn.execute("SELECT COUNT(*) FROM clause_library WHERE user_id = ? OR is_template = 1", (user_id,)).fetchone()[0]
+            own = conn.execute("SELECT COUNT(*) FROM clause_library WHERE user_id = ? AND is_template = 0", (user_id,)).fetchone()[0]
+            types = conn.execute("SELECT COUNT(DISTINCT clause_type) FROM clause_library WHERE user_id = ? OR is_template = 1", (user_id,)).fetchone()[0]
+            usage = conn.execute("SELECT COALESCE(SUM(usage_count), 0) FROM clause_library WHERE user_id = ?", (user_id,)).fetchone()[0]
+        else:
+            total = conn.execute("SELECT COUNT(*) FROM clause_library WHERE is_template = 1").fetchone()[0]
+            own = 0
+            types = conn.execute("SELECT COUNT(DISTINCT clause_type) FROM clause_library WHERE is_template = 1").fetchone()[0]
+            usage = 0
+    finally:
+        conn.close()
+    return {"total": total, "own_clauses": own, "types": types, "total_usage": usage}
+
+# ============================================================================
+# EXPORT HISTORY API (Enterprise)
+# ============================================================================
+
+@app.get("/api/exports")
+async def api_get_exports(request: Request, limit: int = 50):
+    """Export-Historie für den User"""
+    user = get_user_info(request)
+    user_id = user.get("id")
+    conn = _init_db()
+    try:
+        if user_id:
+            exports = conn.execute("SELECT e.id, e.contract_id, e.filename, e.export_format, e.file_size, e.created_at FROM export_history e WHERE e.user_id = ? ORDER BY e.created_at DESC LIMIT ?", (user_id, limit)).fetchall()
+        else:
+            exports = []
+    finally:
+        conn.close()
+    return {"exports": [dict(e) for e in exports], "count": len(exports)}
+
+@app.get("/api/exports/stats")
+async def api_export_stats(request: Request):
+    """Export Statistiken"""
+    user = get_user_info(request)
+    user_id = user.get("id")
+    conn = _init_db()
+    try:
+        if user_id:
+            total = conn.execute("SELECT COUNT(*) FROM export_history WHERE user_id = ?", (user_id,)).fetchone()[0]
+            pdf_count = conn.execute("SELECT COUNT(*) FROM export_history WHERE user_id = ? AND export_format = 'pdf'", (user_id,)).fetchone()[0]
+            json_count = conn.execute("SELECT COUNT(*) FROM export_history WHERE user_id = ? AND export_format = 'json'", (user_id,)).fetchone()[0]
+        else:
+            total = pdf_count = json_count = 0
+    finally:
+        conn.close()
+    return {"total": total, "pdf_count": pdf_count, "json_count": json_count}
+
+def track_export(user_id: int, contract_id: str, filename: str, export_format: str, file_size: int = 0):
+    """Export in Historie speichern"""
+    if not user_id:
+        return
+    conn = _init_db()
+    try:
+        conn.execute("INSERT INTO export_history (user_id, contract_id, filename, export_format, file_size) VALUES (?, ?, ?, ?, ?)", (user_id, contract_id, filename, export_format, file_size))
+        conn.commit()
+    except Exception as e:
+        logger.error(f"Export tracking failed: {e}")
+    finally:
+        conn.close()
 
 @app.get("/api/usage/history")
 async def get_usage_history(request: Request):
